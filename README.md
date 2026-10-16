@@ -1,10 +1,16 @@
 # Red Alert on the AYN Thor
 
-I wanted the original Red Alert on my Thor. Campaigns included. So here it is, with controller support and a command deck on the bottom screen. Counterstrike, Aftermath and the Ant missions are here too.
+I wanted the original Red Alert on my Thor, campaigns and all. This runs it with controller support and a command deck on the bottom screen. Counterstrike, Aftermath and the Ant missions are here too.
 
 This uses the original game engine through Vanilla Conquer's Android branch. Bring your own game files. The APK and installer contain no retail game data.
 
 **Development preview 0.1.0-dev.3.** Tested on a Thor: both original campaign starts, Counterstrike, Aftermath, Ant missions, campaign save/load, building placement, infantry production, groups and returning from Home. Every campaign mission has not been played through. See [verification and remaining limits](docs/Verification.md).
+
+This build is for campaigns and offline skirmish. Multiplayer is not included.
+
+| Top screen | Bottom screen |
+|---|---|
+| ![Original Allied campaign with units selected](docs/images/gameplay.png) | ![Touch command deck showing actions for selected units](docs/images/command-deck.png) |
 
 ## Downloads
 
@@ -29,6 +35,13 @@ Connect the Thor by USB, unlock it and allow USB debugging. Save your game befor
 Once installed, open **Red Alert - Thor** and play. It runs on its own after a reboot. No root, Shizuku or activation step.
 
 ADB and APK paths are under **Advanced** if you need them. If setup cannot find the Thor, check that the cable carries data and accept the USB debugging prompt on the handheld.
+
+<details>
+<summary>Windows setup window</summary>
+
+![Windows installer](docs/images/windows-setup.png)
+
+</details>
 
 Choose your Steam `Command & Conquer Red Alert` folder. Setup imports the base game, both expansions, all four disc archives, and the campaign map video and trailers when present. Windows executables, DLLs and PC settings stay on your computer.
 

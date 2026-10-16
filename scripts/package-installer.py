@@ -40,6 +40,8 @@ def main():
         z.write(adb/"NOTICE.txt","licenses/Android-Platform-Tools.txt")
         for name in ("README.md","THOR-UPSTREAM.json"):
             z.write(ROOT/name,name)
+        for source in sorted((ROOT/"docs").rglob("*")):
+            if source.is_file(): z.write(source,source.relative_to(ROOT))
     print(archive)
     print("SHA-256:",hashlib.sha256(archive.read_bytes()).hexdigest())
 

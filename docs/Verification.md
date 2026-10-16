@@ -36,6 +36,14 @@ not been verified. Android may kill a background process; app-return support doe
 not recover an unsaved game after process death. The native skirmish menu disables
 saving; campaign save/load works.
 
+The signed `0.1.0-dev.3` download was installed over the test build without
+uninstalling. Its native libraries match the Android 13 target build that passed
+both controller suites. The public APK loaded the existing Allied save, selected
+nine units with A plus left stick, and exported all four saves unchanged. Its
+manifest has no QA receiver and Android reports it as non-debuggable. Installer
+checks passed on Windows, macOS and Linux in GitHub Actions; the Android build
+job passed too. These host checks do not verify the desktop UI on macOS/Linux.
+
 ## Repeat the controller checks
 
 The exported QA receiver exists only in debug builds. Each state request must get
