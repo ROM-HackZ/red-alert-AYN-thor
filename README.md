@@ -76,6 +76,8 @@ L3 and R3 mean clicking the left and right sticks. You do not need to hold a sti
 
 Health bars appear on selected units and damaged units, including visible enemies. They follow the original visibility rules.
 
+RA1 slowly damages buildings that consume power when their base is low on power. An enemy building you haven't attacked can still lose a few hit points. At 899/900 HP, its green bar will look full.
+
 Original Red Alert had no camera zoom. This build adds it; it does not rotate the camera.
 
 Groups follow the original RA1 rule: each unit belongs to one group. Assigning it to another group moves it out of the previous one.

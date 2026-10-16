@@ -62,6 +62,15 @@ check showed bars on damaged friendly units and visible enemy units/buildings
 with the player's selection cleared. Undamaged, unselected units retain the
 original uncluttered display.
 
+A follow-up checked actual enemy health and power values. In Allied mission 1,
+the enemy initially had 700 power against 690 demand; the refinery was 900/900 HP
+and showed no bar while unselected. Destroying one power plant reduced power to
+600 against 690 demand. The refinery, which had not been attacked, then fell to
+899/900 HP on the engine's power-damage tick and displayed its bar. This is the
+original rule in `HouseClass::AI`: buildings with nonzero power drain slowly take
+damage under low power while above half health. The nearly full bars are expected;
+the health-bar predicate and gameplay rules were left unchanged.
+
 ## Repeat the controller checks
 
 The exported QA receiver exists only in debug builds. Each state request must get
