@@ -8,6 +8,10 @@ import android.hardware.display.DisplayManager;
 import android.view.*;
 import android.widget.FrameLayout;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.OutputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 import org.json.JSONObject;
 import org.libsdl.app.SDLActivity;
 
@@ -26,7 +30,7 @@ public final class ThorActivity extends SDLActivity {
     private CommandDeck deck;
     private WheelView wheel;
     private volatile boolean ready;
-    private boolean lt, rt, lb, l3, l3Moved, r3, selecting, resumed, controllerActive;
+    private boolean lt, rt, lb, r3, selecting, resumed, controllerActive;
     private boolean ltDigital, rtDigital, ltAnalog, rtAnalog, deckPress;
     private int hatX, hatY;
     private long lastNavigation;
@@ -36,6 +40,7 @@ public final class ThorActivity extends SDLActivity {
     private float touchX, touchY, pinch;
     private long touchStarted;
     private float touchTravel;
+    private static final int EXPORT_SAVES = 701;
     private final Runnable tick = new Runnable() {
         @Override public void run() {
             if (ready && resumed) {
@@ -98,7 +103,7 @@ public final class ThorActivity extends SDLActivity {
     }
     private void release() {
         if (ready) command(8, 0, 0, 0, 0);
-        lt = rt = lb = l3 = l3Moved = r3 = selecting = controllerActive = false; lx = ly = rx = ry = 0;
+        lt = rt = lb = r3 = selecting = controllerActive = false; lx = ly = rx = ry = 0;
         ltDigital = rtDigital = ltAnalog = rtAnalog = deckPress = false; hatX = hatY = 0;
         if (wheel != null) wheel.cancel();
     }
@@ -108,23 +113,60 @@ public final class ThorActivity extends SDLActivity {
         handler.postDelayed(() -> command(2, scancode, 1, 0, 0), 45);
     }
     void action(int id) { if (ready) command(5, id, 0, 0, 0); }
-    void touch() { controllerActive=false; command(3,0,0,0,0); }
+    void exportSaves() {
+        release();
+        android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_CREATE_DOCUMENT);
+        intent.addCategory(android.content.Intent.CATEGORY_OPENABLE);
+        intent.setType("application/zip");
+        intent.putExtra(android.content.Intent.EXTRA_TITLE, "RedAlert-Thor-saves-" + System.currentTimeMillis() + ".zip");
+        startActivityForResult(intent, EXPORT_SAVES);
+    }
+    @Override protected void onActivityResult(int request, int result, android.content.Intent data) {
+        super.onActivityResult(request, result, data);
+        if (request != EXPORT_SAVES || result != RESULT_OK || data == null || data.getData() == null) return;
+        android.net.Uri destination = data.getData();
+        File folder = new File(getExternalFilesDir(null), "user/vanillara");
+        new Thread(() -> {
+            String message;
+            try (OutputStream output = getContentResolver().openOutputStream(destination);
+                 ZipOutputStream zip = new ZipOutputStream(output)) {
+                File[] files = folder.listFiles();
+                if (files == null) throw new java.io.IOException("Save folder is unavailable");
+                byte[] buffer = new byte[65536];
+                for (File file : files) if (file.isFile()) {
+                    zip.putNextEntry(new ZipEntry("vanillara/" + file.getName()));
+                    try (FileInputStream input = new FileInputStream(file)) {
+                        int count; while ((count = input.read(buffer)) != -1) zip.write(buffer, 0, count);
+                    }
+                    zip.closeEntry();
+                }
+                message = "Saves exported";
+            } catch (Exception error) {
+                android.util.Log.e("RedAlertThor", "Save export failed", error);
+                message = "Could not export saves. Choose another location and try again.";
+            }
+            final String notice = message;
+            handler.post(() -> android.widget.Toast.makeText(this, notice, android.widget.Toast.LENGTH_LONG).show());
+        }, "save-export").start();
+    }
+    void touch() { controllerActive=false; stopAxes(); }
+    void stopAxes() { command(3,0,0,0,0); command(16,0,0,0,0); }
     private void sendAxes() {
-        if (!controllerActive || wheel.open()) command(3,0,0,0,0);
-        else if (deck!=null && deck.radarMode()) { command(3,0,0,0,0); deck.moveRadar(lx,ly); }
-        else if (l3) command(3,1,0,lx,ly);
-        else if (r3 || selecting || !latest.optBoolean("active") || latest.optBoolean("modal"))
-            command(3,1,0,rx!=0 || ry!=0?rx:lx,rx!=0 || ry!=0?ry:ly);
+        if (!controllerActive || wheel.open()) stopAxes();
+        else if (deck!=null && deck.radarMode()) { stopAxes(); deck.moveRadar(lx,ly); }
         else {
-            command(3,2,0,lx,ly); // Gamepad aiming stays centred; touch owns its own cursor.
-            if(ry!=0) command(7,0,0,-ry*.025f,0);
+            command(3,0,0,lx,ly);
+            // Keep a selection box anchored while A is held.
+            boolean camera = !selecting && latest.optBoolean("active") && !latest.optBoolean("modal");
+            command(16,0,0,camera && !r3?rx:0,camera && !r3?ry:0);
+            if (camera && r3 && ry!=0) command(7,0,0,-ry*.025f,0);
         }
     }
     String diagnosticState() throws org.json.JSONException {
         JSONObject result = new JSONObject(state());
         result.put("leftX",lx); result.put("leftY",ly); result.put("rightX",rx); result.put("rightY",ry);
         result.put("leftTrigger",lt); result.put("rightTrigger",rt);
-        result.put("leftCursor",l3); result.put("rightCursor",r3);
+        result.put("zoomModifier",r3);
         result.put("selecting",selecting);
         result.put("wheelGroups",wheel.open() && wheel.groups());
         result.put("wheelChoice",wheel.choice());
@@ -153,8 +195,7 @@ public final class ThorActivity extends SDLActivity {
             if (wheel.open()) { if (down && e.getRepeatCount() == 0) { deckPress=true; wheel.confirm(); } return true; }
             if (deck != null && deck.radarMode()) { if (down && e.getRepeatCount()==0) { deckPress=true; deck.useRadar(); } return true; }
             if (down && deck != null && deck.activateFocus()) { deckPress = true; return true; }
-            if(down) sendAxes();
-            selecting = down; click(down, 1); return true;
+            selecting = down; sendAxes(); click(down, 1); return true;
         case KeyEvent.KEYCODE_BUTTON_B:
             if (down && e.getRepeatCount() == 0) {
                 if (wheel.open()) wheel.cancel();
@@ -175,11 +216,11 @@ public final class ThorActivity extends SDLActivity {
         case KeyEvent.KEYCODE_BUTTON_R1: if (down && e.getRepeatCount() == 0 && deck != null) deck.toggleRadar(); return true;
         case KeyEvent.KEYCODE_BUTTON_THUMBL:
             if (down && e.getRepeatCount()==0) {
-                if (lt) { action(6); l3=false; }
-                else { l3=true; l3Moved=lx!=0 || ly!=0; if(deck!=null) deck.clearDeckFocus(); }
-            } else if (!down && l3) { if (!l3Moved) action(1); l3=false; }
+                if (!selecting) action(lt?6:1);
+                if (deck!=null) deck.clearDeckFocus();
+            }
             return true;
-        case KeyEvent.KEYCODE_BUTTON_THUMBR: r3 = down; return true;
+        case KeyEvent.KEYCODE_BUTTON_THUMBR: r3 = down; sendAxes(); return true;
         case KeyEvent.KEYCODE_BUTTON_START: if (down && e.getRepeatCount() == 0) key(41); return true;
         case KeyEvent.KEYCODE_BUTTON_SELECT: if (down && e.getRepeatCount() == 0 && deck != null) deck.nextTab(); return true;
         case KeyEvent.KEYCODE_DPAD_UP: case KeyEvent.KEYCODE_DPAD_DOWN: case KeyEvent.KEYCODE_DPAD_LEFT: case KeyEvent.KEYCODE_DPAD_RIGHT:
@@ -203,7 +244,6 @@ public final class ThorActivity extends SDLActivity {
         if (ready && (e.isFromSource(InputDevice.SOURCE_JOYSTICK) || e.isFromSource(InputDevice.SOURCE_GAMEPAD))) {
             controllerActive=true;
             lx = dead(e.getAxisValue(MotionEvent.AXIS_X)); ly = dead(e.getAxisValue(MotionEvent.AXIS_Y));
-            if(l3 && (lx!=0 || ly!=0)) l3Moved=true;
             if ((lx != 0 || ly != 0) && deck != null) deck.clearDeckFocus();
             rx = dead(e.getAxisValue(MotionEvent.AXIS_Z)); ry = dead(e.getAxisValue(MotionEvent.AXIS_RZ));
             ltAnalog = Math.max(e.getAxisValue(MotionEvent.AXIS_LTRIGGER), e.getAxisValue(MotionEvent.AXIS_BRAKE)) > .55f;

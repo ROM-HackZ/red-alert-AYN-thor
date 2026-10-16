@@ -57,22 +57,26 @@ def verify(d):
         process.communicate()
     # Check cursor motion at the edge too: native mouse autoscroll must not pan.
     before=d.state()
-    process=d.probe("chord",106,1,0,0,0,0,0,2200,background=True)
+    process=d.probe("axes",1,0,0,0,0,0,2200,background=True)
     try:
         edge=before["width"]//2+int(before["width"]/before["zoom"])/2-5
-        held=d.wait("L3 + left stick reaches visible cursor edge",lambda s:s["leftCursor"] and s["pointerX"]>=edge,3)
+        held=d.wait("Left stick reaches visible cursor edge",lambda s:s["pointerX"]>=edge,3)
         if (held["cameraX"],held["cameraY"])!=(before["cameraX"],before["cameraY"]):
-            raise AssertionError("L3 precision cursor panned the camera")
+            raise AssertionError("Left-stick cursor panned the camera")
     finally:
         process.communicate()
     after=d.state()
     if (after["cameraX"],after["cameraY"])!=(before["cameraX"],before["cameraY"]):
-        raise AssertionError("Releasing L3 after aiming moved the camera")
-    d.checks.append({"check":"L3 + left stick moves cursor without panning, including at edge","frame":after["frame"]})
+        raise AssertionError("Releasing left stick after aiming moved the camera")
+    parked=(after["pointerX"],after["pointerY"])
+    time.sleep(.4)
+    idle=d.state()
+    if (idle["pointerX"],idle["pointerY"])!=parked: raise AssertionError("Cursor sprang back on stick release")
+    d.checks.append({"check":"Left stick parks cursor without panning, including at edge","frame":after["frame"]})
     # Pan away from the nearer edge of this particular map.
     direction=1 if after["cameraX"] < after["mapX"]*256+after["mapW"]*128-after["cameraW"]/2 else -1
-    d.probe("axes",direction,0,0,0,0,0,350)
-    d.wait("Normal left stick pans beneath centred aim",lambda s:s["cameraX"]!=after["cameraX"] and s["pointerX"]==s["width"]//2 and s["pointerY"]==s["height"]//2)
+    d.probe("axes",0,0,direction,0,0,0,350)
+    d.wait("Right stick pans and leaves cursor parked",lambda s:s["cameraX"]!=after["cameraX"] and (s["pointerX"],s["pointerY"])==parked and s["zoom"]==after["zoom"])
     d.tap(527,646,4)
     d.wait("Units reselected for touch deselection",lambda s:s["selected"]>0)
     d.probe("two-tap")
@@ -84,22 +88,22 @@ def verify(d):
         d.probe("pan-left")
     d.wait("Two-finger drag pans", lambda s: s["cameraX"] != before["cameraX"])
     # Begin below the maximum before checking the positive zoom direction.
-    d.probe("axes", 0, 0, 0, 1, 0, 0, 1000)
+    d.probe("chord",107,0,0,0,1,0,0,1000)
     zoom = d.state()["zoom"]
-    d.probe("axes", 0, 0, 0, -1, 0, 0, 350)
-    d.wait("Right stick up zooms in", lambda s: s["zoom"] > zoom)
-    d.probe("axes", 0, 0, 0, 1, 0, 0, 1000)
+    d.probe("chord",107,0,0,0,-1,0,0,350)
+    d.wait("R3 + right stick up zooms in", lambda s: s["zoom"] > zoom)
+    d.probe("chord",107,0,0,0,1,0,0,1000)
     zoom = d.state()["zoom"]
     d.probe("pinch-out")
     d.wait("Pinch zooms in", lambda s: s["zoom"] > zoom)
     pid = d.adb("shell", "pidof", PACKAGE).strip()
-    process = d.probe("chord", 106, 1, 0, 0, 0, 0, 0, 2200, background=True)
+    process = d.probe("chord", 107, 1, 0, 0, 0, 0, 0, 2200, background=True)
     try:
         d.adb("shell", "input", "keyevent", 3)
     finally:
         process.communicate()
     d.adb("shell", "am", "start", "-n", PACKAGE + "/.LauncherActivity")
-    s = d.wait("Return clears held input", lambda s: s["leftX"] == 0 and s["rightX"] == 0 and not s["leftCursor"] and not s["rightCursor"] and s["wheel"] == "closed")
+    s = d.wait("Return clears held input", lambda s: s["leftX"] == 0 and s["rightX"] == 0 and not s["zoomModifier"] and s["wheel"] == "closed")
     if d.adb("shell", "pidof", PACKAGE).strip() != pid or s["scenario"] != scenario:
         raise AssertionError("Home/launcher restarted the game or changed its mission")
     d.checks.append({"check": "Home/launcher preserves process and mission", "frame": s["frame"]})

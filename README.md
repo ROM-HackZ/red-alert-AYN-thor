@@ -1,21 +1,34 @@
-# Red Alert — AYN Thor
+# Red Alert on the AYN Thor
 
-Original Red Alert on the Thor. Campaigns, Counterstrike, Aftermath, buttons, sticks, and a proper command deck on the bottom screen.
+I wanted the original Red Alert on my Thor. Campaigns included. So here it is, with controller support and a command deck on the bottom screen. Counterstrike, Aftermath and the Ant missions are here too.
 
 This uses the original game engine through Vanilla Conquer's Android branch. Bring your own game files. The APK and installer contain no retail game data.
 
-**Development preview 0.1.0-dev.2.** Tested on a Thor: both original campaign starts, Counterstrike, Aftermath, Ant missions, campaign save/load, building placement, infantry production, groups and returning from Home. Every campaign mission has not been played through. See [verification and remaining limits](docs/Verification.md).
+**Development preview 0.1.0-dev.3.** Tested on a Thor: both original campaign starts, Counterstrike, Aftermath, Ant missions, campaign save/load, building placement, infantry production, groups and returning from Home. Every campaign mission has not been played through. See [verification and remaining limits](docs/Verification.md).
+
+## Downloads
+
+[Download the development preview](https://github.com/ROM-HackZ/red-alert-AYN-thor/releases/tag/v0.1.0-dev.3).
+
+| File | What it is |
+|---|---|
+| `RedAlert-Thor-Setup.exe` | Windows installer. Includes the app and USB tools. No Python required. |
+| `RedAlert-Thor.apk` | Android app, if you are installing manually or updating an existing setup. Game data is still required. |
+| `RedAlert-Thor-Source.zip` | Complete modified source and setup scripts for building or installing from macOS/Linux. |
+| `SHA256SUMS.txt` | Checksums for the downloads. |
 
 ## Install
 
 | Computer | Setup |
 |---|---|
-| Windows | Run `RedAlert-Thor-Setup.exe`, choose your Steam Red Alert folder, then click **Install on Thor**. The packaged installer includes the APK and ADB. |
+| Windows | Run `RedAlert-Thor-Setup.exe`, choose your Steam Red Alert folder, then click **Install / update on Thor**. The packaged installer includes the APK and ADB. |
 | macOS / Linux | Run `python3 scripts/install-thor.py` for the same UI. Requires Python with Tkinter, Android SDK Platform Tools and the built APK. A terminal option is below. |
 
 Connect the Thor by USB, unlock it and allow USB debugging. Save your game before updating. Setup verifies each copy and reuses files that already match. App updates keep your saves.
 
-Once installed, open **Red Alert - Thor** and play. It runs on its own after a reboot.
+Once installed, open **Red Alert - Thor** and play. It runs on its own after a reboot. No root, Shizuku or activation step.
+
+ADB and APK paths are under **Advanced** if you need them. If setup cannot find the Thor, check that the cable carries data and accept the USB debugging prompt on the handheld.
 
 Choose your Steam `Command & Conquer Red Alert` folder. Setup imports the base game, both expansions, all four disc archives, and the campaign map video and trailers when present. Windows executables, DLLs and PC settings stay on your computer.
 
@@ -27,18 +40,17 @@ python3 scripts/install-thor.py --game "/path/to/Command & Conquer Red Alert" --
 
 | Control | Action |
 |---|---|
-| Left stick | Pan the battlefield beneath a centred aiming cursor, like Generals Thor. Move the cursor in menus. |
-| Right stick up / down | Zoom in / out. |
-| Hold R3 + right stick | Move the cursor freely. |
-| Hold L3 + left stick | Move the cursor freely without panning, leaving your right hand free for A. |
-| A | Select, issue an order, or confirm a building placement. Hold A and move a stick to drag a selection box. |
+| Left stick | Move the cursor. It stays where you leave it. Works in menus too. |
+| Right stick | Pan the map. |
+| Hold R3 + right stick up / down | Zoom in / out. Up zooms in. |
+| A | Select, issue an order, or confirm a building placement. Hold A and move the left stick to drag a selection box. |
 | B | Cancel targeting or placement, keeping your selection. Otherwise deselect or go back. |
 | X | Guard area. |
 | Y | Stop. |
 | Hold LT | Add units to the selection. |
 | Hold RT | Command wheel. Choose with the **left stick**, press A to use it. Release RT or press B to close without choosing. |
 | Hold LB | Group wheel. Left stick chooses; A recalls, X replaces, LT + X adds, Y centres. D-pad left/right switches groups 1–8 / 9–10. Release LB or press B to close. |
-| Tap L3 without moving the stick | Center the camera on the selection. |
+| L3 | Center the camera on the selection. |
 | LT + L3 | Select the same unit type on screen. |
 | RB | Toggle minimap navigation. Left stick moves the marker; A jumps there; B closes it. Requires working radar. |
 | D-pad up / down | Choose a command-deck button. In menus, jump between the game's buttons. |
@@ -47,7 +59,9 @@ python3 scripts/install-thor.py --game "/path/to/Command & Conquer Red Alert" --
 | Select | Switch between Commands, Build & Train and Powers. |
 | Start | Open the game menu. |
 
-L3 and R3 mean clicking the left and right sticks. Hold L3 while aiming with the left stick; A selects or gives an order at that cursor. Releasing L3 returns to centred aiming. A quick L3 click without moving still centres your selection.
+L3 and R3 mean clicking the left and right sticks. You do not need to hold a stick button to use the cursor. Camera panning and controller zoom pause while A is held so your selection box stays anchored.
+
+Original Red Alert had no camera zoom. This build adds it; it does not rotate the camera.
 
 Groups follow the original RA1 rule: each unit belongs to one group. Assigning it to another group moves it out of the previous one.
 
@@ -86,7 +100,9 @@ The main menu has the original campaign and expansion choices. The bottom screen
 | `Android/data/org.redalertthor.app/files/user/vanillara/` | Thor settings and saves. |
 | `Android/data/org.redalertthor.app/files/import-manifest.json` | Sizes and SHA-256 hashes of imported files. |
 
-Use saves made by the Thor build. Setup does not copy or change your PC saves. Back up the Thor's `user` folder before uninstalling the app; Android removes app data on uninstall.
+Use saves made by the Thor build. Setup does not copy or change your PC saves. Before uninstalling, save your mission, press **Start**, then tap **Export saves** on the bottom screen. Choose Downloads, a USB drive or another storage provider. The ZIP contains your Thor saves and settings. Android removes the app's own data when you uninstall it.
+
+To restore an exported backup after reinstalling, extract its `vanillara` folder, then copy it into the app's `files/user/` folder with ADB while the game is closed. Keep a copy of your backup until you have loaded the save successfully.
 
 Campaigns support save/load. The original skirmish menu disables saving. Save a campaign before leaving it for a long time; Android can close background apps when it needs memory.
 
@@ -94,7 +110,7 @@ If sound is silent, check Android's media volume and the AYN game profile. The t
 
 ## Build
 
-Dependencies are pinned in [THOR-UPSTREAM.json](THOR-UPSTREAM.json). You need JDK 17, Python 3, CMake, Ninja, Android SDK 36, build-tools 36.0.0, NDK 27.2.12479018, and Gradle 8.11.1. Set `ANDROID_HOME` and `JAVA_HOME` for your machine.
+Dependencies are pinned in [THOR-UPSTREAM.json](THOR-UPSTREAM.json). You need JDK 17, Python 3.12+, CMake, Ninja, Android SDK 36, build-tools 36.0.0, NDK 27.2.12479018, and Gradle 8.11.1. Set `ANDROID_HOME` and `JAVA_HOME` for your machine.
 
 ```sh
 python scripts/build-thor.py
@@ -102,7 +118,7 @@ python -m unittest discover -s scripts/tests -v
 python scripts/check-source.py
 ```
 
-Windows builds use WSL Ubuntu and stage source under `~/.cache/redalert-thor/build` to avoid slow builds through OneDrive. Linux builds run the shell script directly. The APK is written to `artifacts/RedAlert-Thor.apk`.
+Windows builds use WSL Ubuntu and stage source under `~/.cache/redalert-thor/build` to avoid slow builds through OneDrive. Linux builds run the shell script directly. On macOS, set `JAVA_HOME` to your JDK 17 installation and install the same SDK/NDK and build tools. Put Gradle on PATH or set `THOR_GRADLE` to its executable. The APK is written to `artifacts/RedAlert-Thor.apk`.
 
 To package a desktop installer on its target OS, install PyInstaller 6.16.0 and run:
 
@@ -110,7 +126,13 @@ To package a desktop installer on its target OS, install PyInstaller 6.16.0 and 
 python scripts/package-installer.py --adb-dir "/path/to/platform-tools"
 ```
 
-ADB input probes and the exported QA receiver are development tools. The receiver is included only in debug builds. Test scripts live in `scripts/qa/`; temporary results belong in `artifacts/`.
+The default build is a debug APK for development. Public downloads use a signed release build without the QA receiver. To build your own release, set `THOR_BUILD_TYPE=release`, `THOR_SIGNING_STORE`, `THOR_SIGNING_ALIAS`, `THOR_SIGNING_PASSWORD` and `THOR_KEY_PASSWORD`. Keep your key outside Git and reuse it for your updates. On Windows, pass these variables into WSL with `WSLENV`, or run the shell build inside WSL.
+
+ADB input probes and the QA receiver are development tools. Test scripts live in `scripts/qa/`; temporary results belong in `artifacts/`. GitHub checks the installer on Windows, macOS and Linux and builds an Android debug APK. Gameplay still needs a real Thor test.
+
+## Bugs
+
+[Open an issue](https://github.com/ROM-HackZ/red-alert-AYN-thor/issues) with the app version, mission and what you pressed. A screenshot helps. Do not upload the retail game archives.
 
 ## Upstream
 

@@ -42,6 +42,8 @@ def digest(path):
 
 def install(game, adb, apk, serial=None, log=print, launch=True):
     game, apk = Path(game).resolve(), Path(apk).resolve()
+    if not game.is_dir():
+        raise ValueError("Choose your installed Command & Conquer Red Alert folder first.")
     sources = {name.name.upper(): name for name in game.iterdir() if name.is_file()}
     missing = DATA.keys() - sources.keys()
     if missing:
@@ -62,9 +64,14 @@ def install(game, adb, apk, serial=None, log=print, launch=True):
             raise RuntimeError((p.stderr or p.stdout).strip())
         return p.stdout.strip()
     if not serial:
-        devices = [line.split()[0] for line in run("devices").splitlines()[1:] if line.endswith("\tdevice")]
+        connected = [line.split() for line in run("devices").splitlines()[1:] if line.strip()]
+        devices = [line[0] for line in connected if len(line)>1 and line[1]=="device"]
         if len(devices) != 1:
-            raise ValueError("Connect and unlock one Android device, allow USB debugging, then try again.")
+            if any("unauthorized" in line for line in connected):
+                raise ValueError("Unlock your Thor and accept its Allow USB debugging prompt, then try again.")
+            if len(devices)>1:
+                raise ValueError("More than one device is connected. Enter your Thor's device ID under Advanced, or disconnect the other device.")
+            raise ValueError("Thor not found. Connect it with a USB data cable, enable USB debugging, and unlock it. If it is offline, reconnect the cable.")
         serial = devices[0]
     def device(*args):
         return run("-s", serial, *args)
@@ -120,38 +127,59 @@ def gui():
     from tkinter import filedialog, ttk
     app = tk.Tk()
     app.title("Red Alert — Thor setup")
-    app.geometry("760x540")
+    app.geometry("800x620"); app.minsize(740,560)
     app.configure(padx=24, pady=20)
     ttk.Label(app, text="Red Alert on your Thor", font=("Segoe UI", 20, "bold")).pack(anchor="w")
     ttk.Label(app, text="Connect your Thor by USB, unlock it, and allow USB debugging.\nChoose your Steam game folder. Save your game before updating; existing saves are kept.").pack(anchor="w", pady=12)
     values = {}
-    defaults = {"Game folder": r"D:\Steam\steamapps\common\Command & Conquer Red Alert" if os.name == "nt" else "",
+    candidates = ([Path(drive + r":\Steam\steamapps\common\Command & Conquer Red Alert") for drive in "DCE"]
+                  if os.name=="nt" else [Path.home()/".steam/steam/steamapps/common/Command & Conquer Red Alert"])
+    detected = next((str(folder) for folder in candidates if (folder/"REDALERT.MIX").is_file()), "")
+    defaults = {"Game folder": detected,
                 "adb": DEFAULT_ADB, "APK": str(ROOT / "artifacts/RedAlert-Thor.apk")}
+    advanced = ttk.Frame(app)
+    advancedOpen = tk.BooleanVar()
+    def toggle_advanced():
+        if advancedOpen.get(): advanced.pack(fill="x",before=progress,pady=(0,8))
+        else: advanced.pack_forget()
     for label, default in defaults.items():
-        ttk.Label(app, text=label).pack(anchor="w")
-        row = ttk.Frame(app); row.pack(fill="x", pady=(0, 8))
+        parent=app if label=="Game folder" else advanced
+        ttk.Label(parent, text=label if label=="Game folder" else "ADB executable" if label=="adb" else "App APK").pack(anchor="w")
+        row = ttk.Frame(parent); row.pack(fill="x", pady=(0, 8))
         value = tk.StringVar(value=default); values[label] = value
         ttk.Entry(row, textvariable=value).pack(side="left", fill="x", expand=True)
         def browse(v=value, folder=label == "Game folder"):
             path = filedialog.askdirectory() if folder else filedialog.askopenfilename()
             if path: v.set(path)
         ttk.Button(row, text="Browse", command=browse).pack(side="right", padx=(8, 0))
+    ttk.Label(advanced,text="Device ID (optional, for more than one connected device)").pack(anchor="w")
+    serial=tk.StringVar(); ttk.Entry(advanced,textvariable=serial).pack(fill="x")
+    ttk.Checkbutton(app,text="Advanced: custom APK, ADB or device",variable=advancedOpen,command=toggle_advanced).pack(anchor="w",pady=(0,8))
+    progress=ttk.Progressbar(app,mode="indeterminate"); progress.pack(fill="x",pady=(8,10))
+    status=tk.StringVar(value="Ready to install. Your own game files are required.")
+    ttk.Label(app,textvariable=status,wraplength=740).pack(anchor="w",pady=(0,6))
     output = tk.Text(app, height=8, state="disabled", wrap="word")
     events = queue.Queue()
     def start():
         button.configure(state="disabled")
+        progress.start(); status.set("Checking your game folder and connected Thor…")
         selected = {name: value.get() for name, value in values.items()}
+        device_id=serial.get().strip() or None
         def work():
-            try: install(selected["Game folder"], selected["adb"], selected["APK"], log=events.put)
-            except Exception as error: events.put("Setup stopped: " + str(error))
+            try:
+                install(selected["Game folder"], selected["adb"], selected["APK"], serial=device_id,log=events.put)
+                events.put(("status","Installed. Open Red Alert - Thor. You can disconnect the USB cable."))
+            except Exception as error:
+                events.put("Setup stopped: " + str(error)); events.put(("status",str(error)))
             finally: events.put(None)
         threading.Thread(target=work, daemon=True).start()
-    button = ttk.Button(app, text="Install on Thor", command=start)
+    button = ttk.Button(app, text="Install / update on Thor", command=start)
     button.pack(anchor="w", pady=8); output.pack(fill="both", expand=True)
     def pump():
         while not events.empty():
             line = events.get()
-            if line is None: button.configure(state="normal")
+            if line is None: button.configure(state="normal"); progress.stop()
+            elif isinstance(line,tuple): status.set(line[1])
             else:
                 output.configure(state="normal"); output.insert("end", line + "\n")
                 output.see("end"); output.configure(state="disabled")

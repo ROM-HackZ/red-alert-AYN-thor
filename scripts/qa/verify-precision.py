@@ -1,4 +1,4 @@
-"""Exercise left-hand cursor aiming with A, and Generals-style group editing.
+"""Exercise persistent left-stick aiming, box selection and group editing.
 
 Requires a live debug mission with several friendly units visible and the ADB
 probe installed. Changes groups 1 and 9, selection, camera and zoom; does not save.
@@ -7,17 +7,38 @@ import argparse
 import hashlib
 import json
 import math
+import time
 from device import Device, ROOT
 
 
 def verify_rectangles(d):
     d.key(97);d.wait("Deselect before rectangle",lambda s:s["selected"]==0)
-    process=d.probe("keys",106,7000,background=True)
+    d.probe("axes",-1,-1,0,0,0,0,1400)
+    before=d.state()
+    process=d.probe("chord",96,.8,.8,1,1,0,0,2000,background=True)
     try:
-        d.probe("axes",-1,-1,0,0,0,0,1000)
-        d.probe("chord",96,1,1,0,0,0,0,1800)
-        d.wait("A held with left-stick cursor draws selection rectangle",lambda s:s["selected"]>1)
+        s=d.wait("A + left stick draws a native rectangle",lambda s:s["dragging"] and s["leftMouse"],3)
+        if (s["cameraX"],s["cameraY"])!=(before["cameraX"],before["cameraY"]):
+            raise AssertionError("Right stick moved the map underneath a selection box")
+        d.capture("controller-selection-rectangle.png")
     finally: process.communicate()
+    s=d.wait("A release completes rectangle and releases mouse",lambda s:s["selected"]>1 and not s["dragging"] and not s["leftMouse"])
+    parked=(s["pointerX"],s["pointerY"])
+    time.sleep(.3)
+    if (d.state()["pointerX"],d.state()["pointerY"])!=parked:
+        raise AssertionError("Releasing A reset the cursor")
+    # Releasing a stick click halfway through a box must not change its mode.
+    d.key(97);d.probe("axes",-1,-1,0,0,0,0,1400)
+    held=d.probe("keys",96,4500,background=True)
+    try:
+        d.probe("axes",.8,.8,0,0,0,0,700)
+        d.key(106)
+        d.wait("L3 press/release keeps the current selection box",lambda s:s["dragging"] and s["leftMouse"])
+        d.key(107)
+        d.wait("R3 press/release keeps the current selection box",lambda s:s["dragging"] and s["leftMouse"])
+        d.probe("axes",.8,.8,0,0,0,0,1200)
+    finally: held.communicate()
+    d.wait("Box survives stick-button releases",lambda s:s["selected"]>1 and not s["leftMouse"])
     d.key(97);d.wait("Deselect before touch rectangle",lambda s:s["selected"]==0)
     d.adb("shell","input","swipe",110,15,1800,1040,1200)
     d.wait("Touch rectangle retains control of cursor",lambda s:s["selected"]>1)
@@ -26,7 +47,7 @@ def verify_rectangles(d):
 def verify(d):
     s=d.state()
     if s.get("modal"): d.button("Resume Mission")
-    d.probe("axes",0,0,0,1,0,0,1100)
+    d.probe("chord",107,0,0,0,1,0,0,1100)
     d.tap(200,145,4); d.tap(527,646,4)
     s=d.wait("Friendly units visible",lambda s:s.get("selected",0)>1)
     wx,wy=s["selectedX"],s["selectedY"]
@@ -34,27 +55,30 @@ def verify(d):
     ty=(wy-s["cameraY"])*s["height"]/s["cameraH"]
     camera=(s["cameraX"],s["cameraY"])
     d.key(97)
-    process=d.probe("keys",106,12000,background=True)
-    try:
-        for _ in range(9):
-            s=d.state(); dx=tx-s["pointerX"]; dy=ty-s["pointerY"]
-            distance=math.hypot(dx,dy)
-            if distance<4: break
-            def axis(delta): return math.copysign(.18+.82*.6*abs(delta)/distance,delta) if abs(delta)>.5 else 0
-            d.probe("axes",axis(dx),axis(dy),0,0,0,0,max(30,min(400,round(distance/(420*.6)*1000))))
-        else: raise AssertionError("Joystick cursor did not converge on the unit")
-        d.key(96)
-        s=d.wait("L3 + left stick aims; right-hand A selects unit",lambda s:s["selected"]==1)
-        if (s["cameraX"],s["cameraY"])!=camera: raise AssertionError("Precision selection panned the camera")
-    finally: process.communicate()
-    # Same right-stick precision option as Generals; its Y axis must not zoom.
+    for _ in range(12):
+        s=d.state(); dx=tx-s["pointerX"]; dy=ty-s["pointerY"]
+        distance=math.hypot(dx,dy)
+        if distance<4: break
+        def axis(delta): return math.copysign(.18+.82*.6*abs(delta)/distance,delta) if abs(delta)>.5 else 0
+        d.probe("axes",axis(dx),axis(dy),0,0,0,0,max(30,min(400,round(distance/(420*.6)*1000))))
+    else: raise AssertionError("Joystick cursor did not converge on the unit")
+    parked=d.state()
+    time.sleep(.4)
+    s=d.state()
+    if (s["pointerX"],s["pointerY"])!=(parked["pointerX"],parked["pointerY"]):
+        raise AssertionError("Neutral left stick reset the cursor")
+    d.key(96)
+    s=d.wait("Move left stick, release it, then A selects the aimed unit",lambda s:s["selected"]==1)
+    if (s["cameraX"],s["cameraY"])!=camera: raise AssertionError("Cursor selection panned the camera")
     before=d.state()
-    process=d.probe("chord",107,0,0,0,.7,0,0,1600,background=True)
+    process=d.probe("chord",107,0,0,0,-.7,0,0,700,background=True)
     try:
-        held=d.wait("R3 + right stick still aims",lambda s:s["rightCursor"] and s["pointerY"]!=before["pointerY"])
-        if held["zoom"]!=before["zoom"] or (held["cameraX"],held["cameraY"])!=camera:
-            raise AssertionError("R3 precision changed camera or zoom")
+        held=d.wait("Hold R3 + right stick up zooms in",lambda s:s["zoomModifier"] and s["zoom"]>before["zoom"])
+        if (held["cameraX"],held["cameraY"])!=camera:
+            raise AssertionError("Zoom modifier panned the camera")
     finally: process.communicate()
+    d.probe("chord",107,0,0,0,1,0,0,1100)
+    d.wait("Hold R3 + right stick down zooms back out",lambda s:s["zoom"]==1 and not s["zoomModifier"])
     process=d.probe("chord",102,0,-1,0,0,0,0,4000,background=True)
     try:
         d.wait("Groups opened",lambda s:s["wheelGroups"])

@@ -14,7 +14,7 @@ final class WheelView extends View {
     boolean open() { return visible; }
     boolean groups() { return groups; }
     int choice() { return visible && chosen>=0 ? page*8+chosen : -1; }
-    void show(boolean groupWheel) { groups = groupWheel; visible = true; chosen = -1; page=0; ThorActivity.command(3, 0, 0, 0, 0); invalidate(); }
+    void show(boolean groupWheel) { groups = groupWheel; visible = true; chosen = -1; page=0; owner.stopAxes(); invalidate(); }
     void cancel() { visible = false; chosen = -1; invalidate(); }
     void navigate(int dx) { if(groups && dx!=0) { page=dx>0?1:0; invalidate(); } }
     void choose(float x, float y) {

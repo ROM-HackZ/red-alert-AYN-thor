@@ -23,12 +23,15 @@ final class CommandDeck extends View {
     private float radarX=.5f, radarY=.5f;
     private float sx, sy, startY;
     private int held = -1;
+    private int heldTab, heldType, heldId;
+    private RectF heldBounds;
     private final Handler handler = new Handler();
     private final String[] tabs = {"COMMANDS", "BUILD & TRAIN", "POWERS"};
     private final String[] commands = {"Guard", "Stop", "Scatter", "Deploy / unload", "Repair", "Sell", "Select view", "Same type", "Center selection", "Base", "Deselect"};
     private final String[] descriptions = {"Defend this area", "Cancel current orders", "Spread units apart", "Use selected unit's ability", "Choose a damaged building", "Choose a building to sell", "Units on this screen", "Selected type on screen", "Find selected units", "Find your yard or MCV", "Clear current selection"};
     CommandDeck(ThorActivity activity, Context context) { super(context); owner = activity; setFocusable(false); }
     void update(JSONObject value, int[] pixels) {
+        JSONObject focused = tab!=0 && focus>=0 && page*12+focus<items.size()?items.get(page*12+focus):null;
         data = value; items.clear(); JSONArray source = data.optJSONArray("build");
         if (!data.optBoolean("active") || data.optBoolean("modal")) { focus=-1; radarMode=false; }
         if (!data.optBoolean("radar")) radarMode=false;
@@ -48,7 +51,14 @@ final class CommandDeck extends View {
         if (w > 0 && h > 0 && pixels.length == w*h) {
             if (radar == null || radar.getWidth()!=w || radar.getHeight()!=h) radar = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
             radar.setPixels(pixels,0,w,0,0,w,h);
-        } else radar = null;
+        } else if (pixels.length!=0 || !data.optBoolean("radar")) radar = null;
+        if (focused!=null && (page*12+focus>=items.size() ||
+                focused.optInt("type")!=items.get(page*12+focus).optInt("type") ||
+                focused.optInt("id")!=items.get(page*12+focus).optInt("id"))) focus=-1;
+        if (held>=0 && (tab!=heldTab || tab!=0 && (held>=items.size() ||
+                items.get(held).optInt("type")!=heldType || items.get(held).optInt("id")!=heldId))) {
+            held=-1; handler.removeCallbacksAndMessages(null);
+        }
         page = Math.min(page, Math.max(0, (count()-1)/12)); invalidate();
     }
     private int count() { return tab == 0 ? commands.length : items.size(); }
@@ -144,8 +154,8 @@ final class CommandDeck extends View {
         text(canvas,"A  Select / order / drag",28,824,20,0xffa9c2c7,false);
         text(canvas,"B  Cancel / deselect",28,861,20,0xffa9c2c7,false);
         text(canvas,"RT  Commands   LB  Groups",28,898,20,0xffa9c2c7,false);
-        text(canvas,"LT  Add to selection",28,935,20,0xffa9c2c7,false);
-        text(canvas,"Hold L3 + left stick: cursor",28,972,20,0xffa9c2c7,false);
+        text(canvas,"LS  Cursor   RS  Camera",28,935,20,0xffa9c2c7,false);
+        text(canvas,"Hold R3 + RS up/down: zoom",28,972,20,0xffa9c2c7,false);
         hit.clear();
         int start=page*12, total=count();
         for (int slot=0;slot<12 && start+slot<total;++slot) {
@@ -176,6 +186,15 @@ final class CommandDeck extends View {
                 box(canvas,new RectF(440,660,920,750),0xff71312b);
                 text(canvas,"PLAY THE ANT MISSIONS",470,715,25,Color.WHITE,true);
             }
+        } else if (data.optBoolean("modal")) {
+            box(canvas,new RectF(400,210,1210,940),0xff0c171c);
+            text(canvas,"MISSION MENU",440,330,32,0xffe2d2a8,true);
+            text(canvas,"Use the top screen to save, load or change settings.",440,395,24,0xffc0d0d3,false);
+            text(canvas,"Left stick aims. D-pad jumps between buttons.",440,449,23,0xff9cb6be,false);
+            text(canvas,"Save your mission, then export a backup below.",440,555,23,0xffd6b87c,false);
+            box(canvas,new RectF(440,620,920,710),0xff71312b);
+            text(canvas,"EXPORT SAVES",470,675,25,Color.WHITE,true);
+            text(canvas,"Choose Downloads, a USB drive or cloud storage.",440,770,22,0xff9cb6be,false);
         } else if (total==0) {
             text(canvas,tab==2?"No powers available yet":"Nothing to produce yet",425,318,28,0xffb5c7cc,true);
             text(canvas,"Available choices follow the original game rules.",425,366,23,0xff829ea7,false);
@@ -191,10 +210,23 @@ final class CommandDeck extends View {
         if (action==MotionEvent.ACTION_DOWN) {
             owner.touch();
             held=-1; longPressed=false; startY=y; radarDrag=data.optBoolean("radar") && radarBounds().contains(x,y);
+            if (data.optBoolean("active") && data.optBoolean("modal")) {
+                if (x>=440 && x<=920 && y>=620 && y<=710) owner.exportSaves();
+                return true;
+            }
             if (data.optBoolean("mainMenu") && x>=440 && x<=920 && y>=660 && y<=750) { ThorActivity.command(15,0,0,0,0); return true; }
             if (y>=112 && y<=180) { tab=Math.max(0,Math.min(2,(int)((x-24)/405))); page=0; focus=-1; update(data,new int[0]); return true; }
-            for (int i=0;i<hit.size();++i) if (hit.get(i).contains(x,y)) { held=page*12+i; final int index=held; handler.postDelayed(() -> { if (held==index && tab!=0) { longPressed=true; activate(index,true); } },600); }
+            for (int i=0;i<hit.size();++i) if (hit.get(i).contains(x,y)) {
+                if (page*12+i>=count()) break;
+                held=page*12+i; heldTab=tab; heldBounds=new RectF(hit.get(i));
+                if (tab!=0) { heldType=items.get(held).optInt("type"); heldId=items.get(held).optInt("id"); }
+                final int index=held;
+                handler.postDelayed(() -> { if (held==index && tab!=0) { longPressed=true; activate(index,true); } },600);
+            }
             if (y>940) { if (x<650) navigate(-1,0); else if (x>1000) navigate(1,0); }
+        }
+        if (action==MotionEvent.ACTION_MOVE && held>=0 && !heldBounds.contains(x,y)) {
+            held=-1; handler.removeCallbacksAndMessages(null);
         }
         if ((action==MotionEvent.ACTION_DOWN || action==MotionEvent.ACTION_MOVE) && radarDrag) {
             RectF map=radarBounds();
@@ -204,7 +236,7 @@ final class CommandDeck extends View {
         }
         if (action==MotionEvent.ACTION_UP || action==MotionEvent.ACTION_CANCEL) {
             handler.removeCallbacksAndMessages(null);
-            if (action==MotionEvent.ACTION_UP && held>=0 && !longPressed && Math.abs(y-startY)<30) activate(held,false);
+            if (action==MotionEvent.ACTION_UP && held>=0 && !longPressed && heldBounds.contains(x,y) && Math.abs(y-startY)<30) activate(held,false);
             held=-1; radarDrag=false; return true;
         }
         return true;

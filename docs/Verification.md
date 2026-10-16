@@ -15,20 +15,20 @@ display and the command deck on the 1240×1080 display.
 | Counterstrike | Original mission list, briefing and `SCG20EA.INI` started. |
 | Aftermath | Original mission list, briefing and `SCG43EA.INI` started. |
 | Ant missions | Bottom-screen button started original `SCA01EA.INI`. |
-| Campaign saves | A Counterstrike save loaded after an APK update. An Allied save made without typing a description reloaded at frame 410. USB backup can read the save folder. |
+| Campaign saves | A Counterstrike save loaded after an APK update. An Allied save made without typing a description reloaded at frame 410. The in-app Export saves ZIP matches the latest save byte for byte. Android blocks ordinary USB reads of some app-created files, so export is the supported backup route. |
 | Offline skirmish | Native skirmish menu started `SCM22EA.INI`. |
 | Production | MCV deployed after moving to clear space. Power plant and barracks placed; rifle infantry trained and appeared in the world. |
 | Production cancellation | Pause, resume, cancel/refund and cancelling placement while keeping the completed item passed. |
 | Groups | LB + X assigned, LB + A recalled, LT + X added while preserving selection, and Y selected the group for native camera centering. D-pad paging and group 9 assignment passed. |
 | Wheels | Both use the left stick and A to confirm. Releasing RT or LB closed the wheel without executing its highlighted action. |
-| Precision aiming | L3 + left stick reached the visible edge without panning, then aimed at a unit selected with A. R3 + right stick still aimed without panning or zooming. Normal panning kept the aim centred. |
-| Camera/touch | Left-stick pan, right-stick-up zoom, two-finger pan, pinch and two-finger deselection changed the expected live state. |
-| Selection rectangles | A held with left-stick cursor movement and a one-finger touch drag both selected multiple units in a loaded campaign. The input area covers the full screen after loading a save, including the former top-bar region. |
+| Cursor | Left stick reached the visible edge without panning. Neutral stick left the cursor parked; a later A press selected the aimed unit. |
+| Camera/touch | Right stick panned while keeping the cursor parked and zoom unchanged. R3 + right-stick-up zoomed without panning; down restored 1x. Two-finger pan, pinch and deselection changed the expected live state. |
+| Selection rectangles | A held with left-stick cursor movement and a one-finger touch drag both selected multiple units in a loaded campaign. Right-stick deflection did not move the map underneath a box. Pressing/releasing L3 and R3 during a box kept the drag intact; A release finished it without resetting the cursor. The input area covers the full screen after loading a save, including the former top-bar region. |
 | Radar | A powered radar dome activated the bottom minimap. Taps, dragging and RB/stick/A navigation moved the camera toward the requested positions. |
 | App return | Home followed by the launcher preserved the Linux process and campaign, and cleared held stick/trigger state. |
 | Import retry | Running the installer with an identical APK and data preserved the paused mission and process. |
 | Audio | Android reported an active 48 kHz stereo track with nonzero gain and advancing output frames after unmuting media volume. |
-| Windows installer | The bundled executable opened its setup window without a separate Python installation. |
+| Windows installer | The bundled executable opened its setup window without a separate Python installation. Game folder is the main field; custom APK/ADB/device choices are under Advanced. |
 
 This is a development preview. Full campaign playthroughs, every transport and
 special weapon, other Android devices, and macOS/Linux desktop UI execution have
@@ -87,9 +87,9 @@ PC saves/settings. The source audit rejects retail archives, videos, palettes an
 private signing keys in Git or the APK.
 
 After testing, close the game, restore changed media volume, and remove only the
-probe and QA snapshot created by these tools:
+probe, document-picker dump and QA snapshot created by these tools:
 
 ```sh
 adb shell am force-stop org.redalertthor.app
-adb shell rm -f /data/local/tmp/redalert-thor-input-probe.jar /sdcard/Android/data/org.redalertthor.app/files/qa-state.json
+adb shell rm -f /data/local/tmp/redalert-thor-input-probe.jar /data/local/tmp/redalert-doc-picker.xml /sdcard/Android/data/org.redalertthor.app/files/qa-state.json
 ```

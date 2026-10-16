@@ -30,9 +30,10 @@ std::string iconScenario;
 std::vector<GadgetRect> gadgets;
 unsigned gadgetTime = 0;
 float stickX = 0, stickY = 0;
+float panStickX = 0, panStickY = 0;
 float panRemainderX = 0, panRemainderY = 0;
 float zoom = 1;
-bool pointerMode = false, centredAim = false, pumping = false;
+bool pumping = false;
 bool gadgetHasTactical = false, wasActive = false;
 bool inMission = false;
 bool mainMenu = false, antRequest = false;
@@ -230,7 +231,6 @@ void Thor_Pump() {
     { std::lock_guard<std::mutex> guard(bridgeMutex); commands.swap(pending); }
     bool active = inMission && GameActive && PlayerPtr && !InMovie && !Modal();
     bool enteringMission = active && !wasActive;
-    if (enteringMission) Pointer(ScreenWidth/2, ScreenHeight/2);
     wasActive = active;
     for (auto cmd : commands) {
         switch (cmd.kind) {
@@ -243,8 +243,10 @@ void Thor_Pump() {
         }
         case 2: Keyboard->Put_Key_Message(cmd.a, cmd.b != 0); break;
         case 3:
-            stickX = cmd.x; stickY = cmd.y; pointerMode = cmd.a == 1; centredAim = cmd.a == 2;
-            if(active && centredAim) Pointer(ScreenWidth/2,ScreenHeight/2);
+            stickX = cmd.x; stickY = cmd.y;
+            break;
+        case 16:
+            panStickX = cmd.x; panStickY = cmd.y;
             break;
         case 4:
             if (active) for (auto& strip : Map.Column) for (int i = 0; i < strip.BuildableCount; ++i)
@@ -300,7 +302,7 @@ void Thor_Pump() {
             break;
         case 7: if (active) zoom = std::max(1.f, std::min(2.f, zoom + cmd.x)); break;
         case 8:
-            stickX = stickY = 0; centredAim=false;
+            stickX = stickY = panStickX = panStickY = panRemainderX = panRemainderY = 0;
             Keyboard->Put_Mouse_Message(VK_LBUTTON, 0, 0, true);
             Keyboard->Put_Mouse_Message(VK_RBUTTON, 0, 0, true);
             for (int key : {SDL_SCANCODE_LSHIFT, SDL_SCANCODE_LCTRL, SDL_SCANCODE_LALT}) Keyboard->Put_Key_Message(key, true);
@@ -335,21 +337,18 @@ void Thor_Pump() {
         case 15: if (mainMenu && Is_Counterstrike_Installed()) antRequest = true; break;
         }
     }
-    if(active && centredAim) Pointer(ScreenWidth/2,ScreenHeight/2);
     if (std::abs(stickX) + std::abs(stickY) > 0.01f) {
-        if (pointerMode || !active) {
-            Move_Video_Mouse(stickX * 420 * dt, stickY * 420 * dt);
-            if(active) {
-                int x,y,w,h,px,py; Thor_Viewport(ScreenWidth,ScreenHeight,x,y,w,h); Get_Video_Mouse(px,py);
-                Pointer(std::max(x+4,std::min(x+w-5,px)),std::max(y+4,std::min(y+h-5,py)));
-            }
+        Move_Video_Mouse(stickX * 420 * dt / (active ? zoom : 1), stickY * 420 * dt / (active ? zoom : 1));
+        if(active) {
+            int x,y,w,h,px,py; Thor_Viewport(ScreenWidth,ScreenHeight,x,y,w,h); Get_Video_Mouse(px,py);
+            Pointer(std::max(x+4,std::min(x+w-5,px)),std::max(y+4,std::min(y+h-5,py)));
         }
-        else {
-            panRemainderX += stickX * 2200 * dt; panRemainderY += stickY * 2200 * dt;
-            int dx = int(panRemainderX), dy = int(panRemainderY);
-            panRemainderX -= dx; panRemainderY -= dy;
-            Map.Set_Tactical_Position(XY_Coord(std::max(0, Coord_X(Map.DesiredTacticalCoord) + dx), std::max(0, Coord_Y(Map.DesiredTacticalCoord) + dy)));
-        }
+    }
+    if (active && (std::abs(panStickX) + std::abs(panStickY) > 0.01f)) {
+        panRemainderX += panStickX * 2200 * dt; panRemainderY += panStickY * 2200 * dt;
+        int dx = int(panRemainderX), dy = int(panRemainderY);
+        panRemainderX -= dx; panRemainderY -= dy;
+        Map.Set_Tactical_Position(XY_Coord(std::max(0, Coord_X(Map.DesiredTacticalCoord) + dx), std::max(0, Coord_Y(Map.DesiredTacticalCoord) + dy)));
     }
     if (active && Map.IsSidebarActive) Map.Activate(0);
     // Loading a save restores Map's dimensions, but the static tactical gadget
@@ -385,8 +384,6 @@ extern "C" JNIEXPORT void JNICALL Java_org_redalertthor_app_ThorActivity_configu
     env->ReleaseStringUTFChars(path, chars);
     mkdir((root + "/user").c_str(), 0700);
     mkdir((root + "/user/vanillara").c_str(), 0700);
-    // External save files must remain readable to a USB backup, including release builds.
-    chmod((root + "/user/vanillara").c_str(), 0770);
     // Never import a Windows INI: its video/audio drivers and paths are invalid here.
     std::string config = root + "/user/vanillara/REDALERT.INI";
     if (!std::ifstream(config).good()) {
