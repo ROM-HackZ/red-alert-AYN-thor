@@ -4,7 +4,7 @@ I wanted the original Red Alert on my Thor, campaigns and all. This runs it with
 
 This uses the original game engine through Vanilla Conquer's Android branch. Bring your own game files. The APK and installer contain no retail game data.
 
-**Development preview 0.1.0-dev.4.** Tested on a Thor: both original campaign starts, Counterstrike, Aftermath, Ant missions, campaign save/load, building placement, infantry production, groups and returning from Home. Every campaign mission has not been played through. See [verification and remaining limits](docs/Verification.md).
+**Development preview.** The current source builds `0.1.0-dev.5`; the packaged download below is `0.1.0-dev.4`. Tested on a Thor: both original campaign starts, Counterstrike, Aftermath, Ant missions, campaign save/load, building placement, infantry production, groups and returning from Home. Every campaign mission has not been played through. See [verification and remaining limits](docs/Verification.md).
 
 This build is for campaigns and offline skirmish. Multiplayer is not included.
 
@@ -74,9 +74,18 @@ python3 scripts/install-thor.py --game "/path/to/Command & Conquer Red Alert" --
 
 L3 and R3 mean clicking the left and right sticks. You do not need to hold a stick button to use the cursor. Camera panning and controller zoom pause while A is held so your selection box stays anchored.
 
-Health bars appear on selected units and damaged units, including visible enemies. They follow the original visibility rules.
+From `0.1.0-dev.5`, health bars use the original selected-only default, and the bottom screen has the power gauge and warning flash. The `dev.4` download showed bars on damaged units too and only had power totals.
 
-RA1 slowly damages buildings that consume power when their base is low on power. An enemy building you haven't attacked can still lose a few hit points. At 899/900 HP, its green bar will look full.
+| Indicator | When it shows |
+|---|---|
+| Health bar | Select a unit or building, including an enemy. Deselect it and the bar disappears. Damage alone does not keep it visible. |
+| Your power gauge | The white marker shows demand. Output turns yellow below demand and red below half of demand. The game's own low-power warning timer triggers the flash. |
+| Enemy building outage symbol | Original RA1 has no Generals-style outage badge over disabled buildings. Losing power can stop a defense firing without putting an icon above it. |
+| Enemy power-plant status | Infiltrate the plant with a spy, then select it to see green, yellow or red power-status pips. This is a separate feature from an outage badge. |
+
+I checked the enemy indicators against EA's original [building code](https://github.com/electronicarts/CnC_Red_Alert/blob/main/CODE/BUILDING.CPP#L457) and [power-status drawing code](https://github.com/electronicarts/CnC_Red_Alert/blob/main/CODE/TECHNO.CPP#L5396). The port keeps those conditions.
+
+RA1 slowly damages buildings that consume power when their base is low on power. An enemy building you haven't attacked can still lose a few hit points. Its selected health bar may look full at 899/900 HP.
 
 Original Red Alert had no camera zoom. This build adds it; it does not rotate the camera.
 

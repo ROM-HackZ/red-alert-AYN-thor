@@ -407,6 +407,18 @@ void PowerClass::Refresh_Cells(CELL cell, short const* list)
  * HISTORY:                                                                *
  *   06/14/1995 PWG : Created.                                             *
  *=========================================================================*/
+#ifdef THOR_ANDROID
+// The command deck replaces the sidebar. Keep its gauge on the original scale
+// and use the warning timer started by HouseClass::AI, even with the sidebar shut.
+void PowerClass::Thor_Power_Indicator(int& output, int& demand, int& maximum, bool& flashing)
+{
+    output = Power_Height(PlayerPtr->Power);
+    demand = Power_Height(PlayerPtr->Drain);
+    maximum = POWER_HEIGHT - 2;
+    flashing = FlashTimer > 1 && ((FlashTimer % 3) & 0x01) != 0;
+}
+#endif
+
 int PowerClass::Power_Height(int value)
 {
     int num = value / POWER_STEP_LEVEL; // figure out the initial num of DRAIN_VALUE's

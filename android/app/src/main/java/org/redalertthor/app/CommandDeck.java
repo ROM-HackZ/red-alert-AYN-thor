@@ -120,7 +120,17 @@ final class CommandDeck extends View {
         text(canvas,"RED ALERT",32,54,31,0xfff4eee5,true);
         text(canvas,"THOR COMMAND DECK",32,87,17,0xff87a4ad,false);
         text(canvas,"$ "+data.optInt("money"),690,50,30,0xffe8d08b,true);
-        text(canvas,"POWER  "+data.optInt("power")+" / "+data.optInt("drain"),900,50,21,data.optInt("power")<data.optInt("drain")?0xffff8b79:0xff9fcdc1,true);
+        int powerLevel=data.optInt("powerLevel");
+        int powerColor=powerLevel==2?0xffff8b79:powerLevel==1?0xffe8c45e:0xff9fcdc1;
+        if (data.optBoolean("powerFlash")) box(canvas,new RectF(886,20,1216,104),0xff782c2a);
+        text(canvas,"POWER  "+data.optInt("power")+" / "+data.optInt("drain"),900,50,21,powerColor,true);
+        box(canvas,new RectF(900,64,1202,79),0xff24383e);
+        float powerScale=302f/Math.max(1,data.optInt("powerGaugeMaximum",1));
+        float powerWidth=data.optInt("powerGaugeOutput")*powerScale;
+        if (powerWidth>0) box(canvas,new RectF(900,64,900+powerWidth,79),powerColor);
+        float demandX=900+data.optInt("powerGaugeDemand")*powerScale;
+        p.setColor(Color.WHITE); p.setStrokeWidth(3); canvas.drawLine(demandX,60,demandX,83,p);
+        text(canvas,powerLevel>0?"POWER OUTPUT LOW":"POWER OUTPUT",900,101,15,powerColor,true);
         for (int i=0;i<3;++i) {
             RectF r=new RectF(24+i*405,112,405+i*405,180); box(canvas,r,tab==i?0xff782c2a:0xff1b3038);
             text(canvas,tabs[i],r.left+25,155,25,0xfff3f1ea,true);

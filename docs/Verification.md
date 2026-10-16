@@ -57,7 +57,7 @@ corner stayed fixed. Screenshot comparison found zero stale white outline pixels
 in the test area after release at both 1x and 2x zoom. A reverse drag at 2x
 zoom also remained active until release. This check uses a clear upper-left test area in Allied mission 1.
 
-Health bars now use the engine's damaged-plus-selected mode on Android. A combat
+The `dev.4` health bars used the engine's damaged-plus-selected mode on Android. A combat
 check showed bars on damaged friendly units and visible enemy units/buildings
 with the player's selection cleared. Undamaged, unselected units retain the
 original uncluttered display.
@@ -70,6 +70,55 @@ and showed no bar while unselected. Destroying one power plant reduced power to
 original rule in `HouseClass::AI`: buildings with nonzero power drain slowly take
 damage under low power while above half health. The nearly full bars are expected;
 the health-bar predicate and gameplay rules were left unchanged.
+
+## Original indicators (`dev.5`)
+
+Restored the original selected-only health-bar default. The damaged-plus-selected
+override added in `dev.4` is gone. The building renderer, repair-wrench conditions,
+selection markers and resource/status pips were compared with the pinned upstream;
+their drawing code is unchanged.
+
+An additional source check used EA's released original RA1 code, rather than
+only the Android upstream. `BuildingClass::Draw_It` has no general outage badge,
+and `BuildingClass::Can_Fire` disables powered defenses during a shortage without
+drawing one. `TechnoClass::Draw_It` and `Draw_Pips` show colored power-status pips
+on selected, spied enemy power plants. The port retains that distinction.
+See the original [building code](https://github.com/electronicarts/CnC_Red_Alert/blob/main/CODE/BUILDING.CPP)
+and [indicator code](https://github.com/electronicarts/CnC_Red_Alert/blob/main/CODE/TECHNO.CPP).
+
+The original power gauge was hidden with the sidebar. The replacement deck had
+only totals and a single shortage color, so it lost the gauge, demand marker,
+two shortage levels and warning flash. The deck now uses the engine's original
+`Power_Height` scale, the same shortage thresholds and the `Flash_Power` timer
+started by `HouseClass::AI`. Gameplay power rules remain unchanged.
+
+A separate native skirmish exercised ordinary construction and selling:
+
+| State | Observed display |
+|---|---|
+| 100 output / 90 demand | Normal gauge; white demand marker; radar online. |
+| 100 / 130 | Yellow gauge and low-power text; warning flash visible; radar offline. |
+| 0 / 130 | Red power text, empty gauge and demand marker. |
+| Power restored to 100 / 90 | Normal status and radar online again. |
+
+The screenshot check reads the live engine snapshot, checks the selected-only
+default and compares gauge colors and the demand marker with the actual bottom
+display. The Thor's display color correction is allowed for in the comparison.
+Temporary screenshots and JSON reports stay in `artifacts/`.
+
+The signed, non-debuggable `dev.5` APK has the same native libraries as the tested
+debug build and no QA receiver. In the restored Allied save, selected units had
+1,562 health-bar pixels in the checked area; deselecting removed all of them.
+An export after installation matched all four original save files byte for byte.
+
+Run this read-only check in a prepared test game. Levels are 0 for normal, 1 for
+low power and 2 for demand greater than twice output. The optional flash check
+waits for the original warning timer; it does not trigger a warning itself.
+
+```sh
+python scripts/qa/verify-indicators.py --adb /path/to/adb --serial DEVICE_SERIAL --level 1
+python scripts/qa/verify-indicators.py --adb /path/to/adb --serial DEVICE_SERIAL --level 1 --wait-for-flash
+```
 
 ## Repeat the controller checks
 

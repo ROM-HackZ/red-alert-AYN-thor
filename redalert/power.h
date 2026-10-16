@@ -58,6 +58,9 @@ public:
     virtual void AI(KeyNumType& input, int x, int y);
     virtual void Refresh_Cells(CELL cell, short const* list);
     void Flash_Power(void);
+#ifdef THOR_ANDROID
+    void Thor_Power_Indicator(int& output, int& demand, int& maximum, bool& flashing);
+#endif
 
     unsigned IsToRedraw : 1;
 

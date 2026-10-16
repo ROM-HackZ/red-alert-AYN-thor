@@ -100,6 +100,12 @@ void Publish() {
             if (obj->What_Am_I() == RTTI_BUILDING && obj->Can_Player_Move()) deploy = true;
             Thor_ExplicitAction = false;
         }
+        int powerOutput, powerDemand, powerMaximum; bool powerFlashing;
+        Map.Thor_Power_Indicator(powerOutput, powerDemand, powerMaximum, powerFlashing);
+        int powerLevel = PlayerPtr->Drain > PlayerPtr->Power * 2 ? 2 : PlayerPtr->Drain > PlayerPtr->Power ? 1 : 0;
+        out << ",\"powerLevel\":" << powerLevel << ",\"powerFlash\":" << (powerFlashing ? "true" : "false")
+            << ",\"powerGaugeOutput\":" << powerOutput << ",\"powerGaugeDemand\":" << powerDemand
+            << ",\"powerGaugeMaximum\":" << powerMaximum;
         out << ",\"frame\":" << Frame << ",\"scenario\":" << Quote(Scen.ScenarioName)
             << ",\"money\":" << PlayerPtr->Available_Money() << ",\"power\":" << PlayerPtr->Power
             << ",\"drain\":" << PlayerPtr->Drain << ",\"selected\":" << CurrentObject.Count()
