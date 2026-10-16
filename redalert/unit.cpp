@@ -3585,6 +3585,10 @@ ActionType UnitClass::What_Action(ObjectClass const* object) const
     **	Don't allow special deploy action unless there is something to deploy.
     */
     if (action == ACTION_SELF) {
+#ifdef THOR_ANDROID
+        extern bool Thor_ExplicitAction;
+        if (!Thor_ExplicitAction) return ACTION_SELECT;
+#endif
         if (*this == UNIT_MCV) {
 
             /*

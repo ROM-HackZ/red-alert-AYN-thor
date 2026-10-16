@@ -77,7 +77,7 @@ SettingsClass::SettingsClass()
 #ifndef ANDROID
     Video.Boxing = true;
 #else
-    Video.Boxing = false;
+    Video.Boxing = true;
 #endif
     Video.BoxingAspectRatio = "16:10";
     Video.FrameLimit = 120;
@@ -125,7 +125,7 @@ void SettingsClass::Load(INIClass& ini)
 #ifndef ANDROID
     Video.Boxing = ini.Get_Bool("Video", "Boxing", Video.Boxing);
 #else
-    Video.Boxing = false;
+    Video.Boxing = true;
 #endif
     Video.BoxingAspectRatio = ini.Get_String("Video", "BoxingAspectRatio", Video.BoxingAspectRatio);
     Video.Width = ini.Get_Int("Video", "Width", Video.Width);
@@ -134,7 +134,6 @@ void SettingsClass::Load(INIClass& ini)
     Video.FrameLimit = ini.Get_Int("Video", "FrameLimit", Video.FrameLimit);
     Video.HardwareCursor = ini.Get_Bool("Video", "HardwareCursor", Video.HardwareCursor);
     Video.DOSMode = ini.Get_Bool("Video", "DOSMode", Video.DOSMode);
-    Video.FrameLimit = g_frameRateLimit;
 #endif
     Video.Scaler = ini.Get_String("Video", "Scaler", Video.Scaler);
     Video.Driver = ini.Get_String("Video", "Driver", Video.Driver);

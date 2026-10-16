@@ -1707,6 +1707,10 @@ void Reallocate_Big_Shape_Buffer(void);
 
 bool Main_Loop()
 {
+#ifdef THOR_ANDROID
+    extern void Thor_Mission(bool);
+    Thor_Mission(GameActive);
+#endif
     KeyNumType input; // Player input.
     int x;
     int y;

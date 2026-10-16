@@ -4340,7 +4340,9 @@ void DisplayClass::Sell_Mode_Control(int control)
         IsRepairMode = false;
         if (mode && PlayerPtr->BScan) {
             IsSellMode = true;
+#ifndef THOR_ANDROID
             Unselect_All();
+#endif
         } else {
             IsSellMode = false;
             Revert_Mouse_Shape();
@@ -4386,7 +4388,9 @@ void DisplayClass::Repair_Mode_Control(int control)
         IsSellMode = false;
         if (mode && PlayerPtr->BScan) {
             IsRepairMode = true;
+#ifndef THOR_ANDROID
             Unselect_All();
+#endif
         } else {
             IsRepairMode = false;
             Revert_Mouse_Shape();

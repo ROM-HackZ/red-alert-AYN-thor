@@ -20,6 +20,9 @@
 #include "settings.h"
 #include <cmath>
 #include <SDL.h>
+#ifdef THOR_ANDROID
+#include "android/native/thor_bridge.h"
+#endif
 
 #if ANDROID
 static bool touchIsActive = false;
@@ -35,6 +38,9 @@ WWKeyboardClassSDL2::~WWKeyboardClassSDL2()
 
 void WWKeyboardClassSDL2::Fill_Buffer_From_System(void)
 {
+#ifdef THOR_ANDROID
+    Thor_Pump();
+#endif
 #ifdef NETWORKING
     Process_Network();
 #endif

@@ -430,6 +430,10 @@ bool Init_Game(int, char*[])
  *=============================================================================================*/
 bool Select_Game(bool fade)
 {
+#ifdef THOR_ANDROID
+    extern void Thor_Mission(bool);
+    Thor_Mission(false);
+#endif
     //	Enums in Select_Game() must match order of buttons in Main_Menu().
 #ifdef FIXIT_VERSION_3
     enum

@@ -2044,7 +2044,9 @@ int SidebarClass::StripClass::SelectClass::Action(unsigned flags, KeyNumType& ke
                 if (PlayerPtr->SuperWeapon[spc].Is_Ready()) {
                     if (spc != SPC_SONAR_PULSE) {
                         Map.IsTargettingMode = spc;
+#ifndef THOR_ANDROID
                         Unselect_All();
+#endif
                         Speak(VOX_SELECT_TARGET);
                     } else {
                         OutList.Add(EventClass(EventClass::SPECIAL_PLACE, SPC_SONAR_PULSE, 0));

@@ -46,6 +46,9 @@
 #include "debugstring.h"
 
 #include <SDL.h>
+#ifdef THOR_ANDROID
+#include "android/native/thor_bridge.h"
+#endif
 
 #if ANDROID
 #include <string>
@@ -536,6 +539,11 @@ void Move_Video_Mouse(float xrel, float yrel)
 
 void Get_Video_Mouse(int& x, int& y)
 {
+#ifdef THOR_ANDROID
+    x = hwcursor.X;
+    y = hwcursor.Y;
+    return;
+#endif
     if (Keyboard->Is_Gamepad_Active() || (Settings.Mouse.RawInput && (hwcursor.Clip || !Settings.Video.Windowed))) {
         x = hwcursor.X;
         y = hwcursor.Y;
@@ -928,7 +936,13 @@ public:
 
         SDL_UpdateTexture(texture, NULL, windowSurface->pixels, windowSurface->pitch);
         SDL_RenderClear(renderer);
+#ifdef THOR_ANDROID
+        SDL_Rect source;
+        Thor_Viewport(windowSurface->w, windowSurface->h, source.x, source.y, source.w, source.h);
+        SDL_RenderCopy(renderer, texture, &source, &render_dst);
+#else
         SDL_RenderCopy(renderer, texture, NULL, &render_dst);
+#endif
         SDL_RenderPresent(renderer);
     }
 

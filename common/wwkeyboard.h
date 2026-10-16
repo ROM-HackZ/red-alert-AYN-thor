@@ -860,6 +860,9 @@ typedef enum ScrollDirType : unsigned char
 
 class WWKeyboardClass
 {
+#ifdef THOR_ANDROID
+    friend void Thor_Pump();
+#endif
 protected:
     /* Define the base constructor and destructors for the class			*/
     WWKeyboardClass();

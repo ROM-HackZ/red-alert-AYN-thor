@@ -148,6 +148,10 @@ public:
             StripClass* Strip;
             int Index;
 
+#ifdef THOR_ANDROID
+            void Thor_Invoke(unsigned flags) { KeyNumType key = KN_NONE; Action(flags, key); }
+#endif
+
         protected:
             virtual int Action(unsigned flags, KeyNumType& key);
         };
@@ -177,6 +181,14 @@ public:
         void Flag_To_Redraw(void);
         bool Factory_Link(int factory, RTTIType type, int id);
         void const* Get_Special_Cameo(SpecialWeaponType type);
+#ifdef THOR_ANDROID
+        void Thor_Click(int index, bool cancel) {
+            if (index < 0 || index >= BuildableCount) return;
+            SelectClass button;
+            button.Set_Owner(*this, index - TopIndex);
+            button.Thor_Invoke(cancel ? GadgetClass::RIGHTPRESS : GadgetClass::LEFTPRESS);
+        }
+#endif
 
         /*
         **	File I/O.

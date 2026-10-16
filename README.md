@@ -1,147 +1,121 @@
-# Vanilla Conquer
-Vanilla Conquer is a fully portable version of the first generation C&C engine and is capable of running both Tiberian Dawn and Red Alert on multiple platforms. It can also be used for mod development for the Remastered Collection.
+# Red Alert — AYN Thor
 
-The main focus of Vanilla Conquer is to keep the default out-of-box experience faithful to what the games were back when they were released and work as a drop-in replacement for the original executables while also providing bug fixes, compatiblity and quality of life improvements.
+Original Red Alert on the Thor. Campaigns, Counterstrike, Aftermath, buttons, sticks, and a proper command deck on the bottom screen.
 
-Current project goals are tracked as [GitHub issues with the goal label](https://github.com/Vanilla-Conquer/Vanilla-Conquer/issues?q=is%3Aissue+is%3Aopen+label%3Agoal).
+This uses the original game engine through Vanilla Conquer's Android branch. Bring your own game files. The APK and installer contain no retail game data.
 
-## Chat with us
+**Development preview 0.1.0-dev.2.** Tested on a Thor: both original campaign starts, Counterstrike, Aftermath, Ant missions, campaign save/load, building placement, infantry production, groups and returning from Home. Every campaign mission has not been played through. See [verification and remaining limits](docs/Verification.md).
 
-There are rooms on multiple platforms for discussion:
+## Install
 
-- [The Assembly Armada](https://discord.gg/UnWK2Tw) on [Discord](https://discord.gg)
-- [#vanilla-conquer:vi.fi](https://matrix.to/#/#vanilla-conquer:vi.fi) on [Matrix](https://matrix.org)
-- [#vanilla-conquer](https://web.libera.chat/?channel=#vanilla-conquer) on [Libera.Chat](https://libera.chat]) IRC network
+| Computer | Setup |
+|---|---|
+| Windows | Run `RedAlert-Thor-Setup.exe`, choose your Steam Red Alert folder, then click **Install on Thor**. The packaged installer includes the APK and ADB. |
+| macOS / Linux | Run `python3 scripts/install-thor.py` for the same UI. Requires Python with Tkinter, Android SDK Platform Tools and the built APK. A terminal option is below. |
 
-All of these rooms are bridged together so people can choose their preferred service. Please be nice to each other.
+Connect the Thor by USB, unlock it and allow USB debugging. Save your game before updating. Setup verifies each copy and reuses files that already match. App updates keep your saves.
 
-## Building
+Once installed, open **Red Alert - Thor** and play. It runs on its own after a reboot.
 
-We support wide variety of compilers and platforms to target. Vanilla Conquer is known to compile with recent enough gcc, MSVC, mingw-w64 or clang and known to run on Windows, Linux, macOS and BSDs.
-
-### Presets
-
-A [CMakePresets.json](CMakePresets.json) file is provided that contains presets for common build configurations and is used by our CI scripts to build the release builds. These presets require the [Ninja](https://ninja-build.org/) build tool to be available in the system PATH in order to be used.
-
-We also provide an example [CMakeUserPresets.json](resources/CMakeUserPresets.json.example) that can be copied to the root source directory and renamed. You can edit this file to create your own development presets that won't be included in git commits. A few example presets are provided which override the release presets to build a "debug" configuration.
-
-To build using a preset, add `--preset preset_name` to the CMake command line examples below.
-
-### Windows
-
-#### Requirements
-
-The following components are needed to build Vanilla Conquer executables:
-
- - [MSVC v142 C++ x86/x64 build tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
- - Windows 10 SDK
- - CMake (installable from MSVC build tools)
- - [SDL1 or SDL2 development libraries, Visual C++](https://libsdl.org/download-2.0.php)
- - [OpenAL Core SDK](https://www.openal.org/downloads/)
-
-Extract SDL2 and OpenAL somewhere you know. If you are building only Remastered dlls you can skip installing SDL2 and OpenAL.
-
-#### Building
-
-In a VS command line window in the Vanilla Conquer source directory:
+Choose your Steam `Command & Conquer Red Alert` folder. Setup imports the base game, both expansions, all four disc archives, and the campaign map video and trailers when present. Windows executables, DLLs and PC settings stay on your computer.
 
 ```sh
-cmake -DSDL2_ROOT_DIR=C:\path\to\SDL2 -DOPENAL_ROOT=C:\path\to\OpenAL -B build .
-cmake --build build
+python3 scripts/install-thor.py --game "/path/to/Command & Conquer Red Alert" --adb "/path/to/adb" --apk artifacts/RedAlert-Thor.apk
 ```
 
-This will build Vanilla Conquer executables in the build directory. If you are building Remastered dlls you need to configure cmake with `-A win32` and ensure your VS command line is x86.
+## Controls
 
-### Linux / macOS / BSD
+| Control | Action |
+|---|---|
+| Left stick | Pan the battlefield beneath a centred aiming cursor, like Generals Thor. Move the cursor in menus. |
+| Right stick up / down | Zoom in / out. |
+| Hold R3 + right stick | Move the cursor freely. |
+| Hold L3 + left stick | Move the cursor freely without panning, leaving your right hand free for A. |
+| A | Select, issue an order, or confirm a building placement. Hold A and move a stick to drag a selection box. |
+| B | Cancel targeting or placement, keeping your selection. Otherwise deselect or go back. |
+| X | Guard area. |
+| Y | Stop. |
+| Hold LT | Add units to the selection. |
+| Hold RT | Command wheel. Choose with the **left stick**, press A to use it. Release RT or press B to close without choosing. |
+| Hold LB | Group wheel. Left stick chooses; A recalls, X replaces, LT + X adds, Y centres. D-pad left/right switches groups 1–8 / 9–10. Release LB or press B to close. |
+| Tap L3 without moving the stick | Center the camera on the selection. |
+| LT + L3 | Select the same unit type on screen. |
+| RB | Toggle minimap navigation. Left stick moves the marker; A jumps there; B closes it. Requires working radar. |
+| D-pad up / down | Choose a command-deck button. In menus, jump between the game's buttons. |
+| D-pad left / right | Change command-deck pages. |
+| Hold LT + D-pad | Jump between the game's own buttons. |
+| Select | Switch between Commands, Build & Train and Powers. |
+| Start | Open the game menu. |
 
-#### Requirements
+L3 and R3 mean clicking the left and right sticks. Hold L3 while aiming with the left stick; A selects or gives an order at that cursor. Releasing L3 returns to centred aiming. A quick L3 click without moving still centres your selection.
 
-- GNU C++ Compiler (g++) or Clang
-- CMake
-- SDL1 or SDL2
-- OpenAL
+Groups follow the original RA1 rule: each unit belongs to one group. Assigning it to another group moves it out of the previous one.
 
-On Debian/Ubuntu you can install the build requirements as follows:
+| Touch gesture | Action |
+|---|---|
+| Tap | Select or issue an order. |
+| One-finger drag | Selection rectangle. |
+| Two-finger drag | Pan the map. |
+| Pinch | Zoom. |
+| Two-finger tap | Deselect. |
+| Tap or drag on the bottom-screen minimap | Jump or pan across those map positions. |
+
+## Building, training and powers
+
+**Build & Train** follows the original sidebar. Choices stay available while you have the required buildings; you do not have to keep a production building selected.
+
+| Action | What happens |
+|---|---|
+| Tap a build tile | Start production, resume a paused job, or use a completed item. |
+| Hold a tile during production | Pause it. Hold again to cancel and refund it. |
+| Choose a ready building | Enter placement mode. Move to a valid spot and press A. |
+| B during placement | Leave placement mode. The completed building is still ready to use. |
+| Deploy / unload | Use the selected unit's native ability. MCVs need clear space. Packing a yard is available only when the original rules allow it. |
+
+RA1 has fixed camera and building orientations. Its production limits and technology requirements still apply. **Powers** shows the actual Red Alert powers available to your faction and mission.
+
+The deck reads the engine's selection, build lists, production progress, artwork and radar directly. It does not detect buttons from screenshots. Radar respects the original shroud and availability rules.
+
+The main menu has the original campaign and expansion choices. The bottom screen also has an **Ant missions** button. Saves without a typed description get a default name, so you can save using the controller.
+
+## Files and saves
+
+| Location on the Thor | Contents |
+|---|---|
+| `Android/data/org.redalertthor.app/files/game/` | Imported retail data. |
+| `Android/data/org.redalertthor.app/files/user/vanillara/` | Thor settings and saves. |
+| `Android/data/org.redalertthor.app/files/import-manifest.json` | Sizes and SHA-256 hashes of imported files. |
+
+Use saves made by the Thor build. Setup does not copy or change your PC saves. Back up the Thor's `user` folder before uninstalling the app; Android removes app data on uninstall.
+
+Campaigns support save/load. The original skirmish menu disables saving. Save a campaign before leaving it for a long time; Android can close background apps when it needs memory.
+
+If sound is silent, check Android's media volume and the AYN game profile. The test Thor's game assistant had media volume set to zero.
+
+## Build
+
+Dependencies are pinned in [THOR-UPSTREAM.json](THOR-UPSTREAM.json). You need JDK 17, Python 3, CMake, Ninja, Android SDK 36, build-tools 36.0.0, NDK 27.2.12479018, and Gradle 8.11.1. Set `ANDROID_HOME` and `JAVA_HOME` for your machine.
 
 ```sh
-sudo apt update
-sudo apt install g++ cmake libsdl2-dev libopenal-dev
-or
-sudo apt install g++ cmake libsdl1.2-dev libopenal-dev
+python scripts/build-thor.py
+python -m unittest discover -s scripts/tests -v
+python scripts/check-source.py
 ```
 
-On Fedora/RedHat based system you can install the build requirements as follows:
+Windows builds use WSL Ubuntu and stage source under `~/.cache/redalert-thor/build` to avoid slow builds through OneDrive. Linux builds run the shell script directly. The APK is written to `artifacts/RedAlert-Thor.apk`.
+
+To package a desktop installer on its target OS, install PyInstaller 6.16.0 and run:
 
 ```sh
-sudo dnf install gcc-c++ cmake SDL2-devel openal-soft-devel
-or
-sudo dnf install gcc-c++ cmake SDL-devel openal-soft-devel
+python scripts/package-installer.py --adb-dir "/path/to/platform-tools"
 ```
 
-#### Building
+ADB input probes and the exported QA receiver are development tools. The receiver is included only in debug builds. Test scripts live in `scripts/qa/`; temporary results belong in `artifacts/`.
 
-```sh
-cmake -B build .
-cmake --build build
-```
+## Upstream
 
-This will build Vanilla Conquer executables in the build directory.
+Engine base: [sandstranger/Vanilla-Conquer](https://github.com/sandstranger/Vanilla-Conquer), revision `00733633a026aac4a02e5ccf29a4f14db80441a1`. That Android work is also used by Classic Core. Earlier engine work comes from the Vanilla Conquer contributors and EA's source release.
 
-#### macOS considerations
+Updates are deliberate: review the engine changes, update the pin, merge, then rerun campaign, expansion, production, input and lifecycle tests. A new upstream commit does not silently replace the engine in an installed app.
 
-To create a portable bundle for macOS we run [macdylibbundler](https://github.com/auriamg/macdylibbundler) in our CI builds as an extra step to add the SDL2 and OpenAL libraries to the bundle. If you wish to create a portable bundle yourself, you will need to do this step manually as CMake will not currently do it for you.
-
-### Icons
-
-CMake will attempt to generate icons in an appropriate format for Windows and macOS if ImageMagick is found in the system PATH. Otherwise you will end up with generic "program" icons.
-
-## Releases
-
-Binary releases of the latest commit are available from [here](https://github.com/TheAssemblyArmada/Vanilla-Conquer/releases/tag/latest), which is updated whenever new code is merged into the main branch.
-
-## Running
-
-### VanillaTD and VanillaRA
-
-Copy the Vanilla executable (`vanillatd.exe` or `vanillara.exe`) to your legacy game directory, on Windows also copy `SDL2.dll` and `OpenAL32.dll`.
-
-For Tiberian Dawn the final freeware Gold CD release ([GDI](https://www.moddb.com/games/cc-gold/downloads/command-conquer-gold-free-game-gdi-iso), [NOD](https://www.moddb.com/games/cc-gold/downloads/command-conquer-gold-free-game-nod-iso)) works fine.
-
-For Red Alert the freeware [CD release](https://web.archive.org/web/20080901183216/http://www.ea.com/redalert/news-detail.jsp?id=62) works fine as well.
-The official [Red Alert demo](https://www.moddb.com/games/cc-red-alert/downloads/command-conquer-red-alert-demo) is also fully playable.
-The demo supports custom skirmish maps (except interior) and includes one campaign mission for both Allied and Soviet from the retail game.
-
-While it is possible to use the game data from the Remastered Collection, The Ultimate Collection or The First Decade they are currently _not_ supported.
-Any repackaged version that you may already have from any unofficial source is _not_ supported.
-If you encounter a bug that may be data related like invisible things or crashing when using a certain unit please retest with the retail data first before submitting a bug report.
-
-### Remastered
-
-The build process will produce _Vanilla_TD_ and _Vanilla_RA_ directories in your build directory if you enable them with `-DBUILD_REMASTERTD=ON` and `-DBUILD_REMASTERRA=ON`.
-These work as mods for the Remastered Collection.
-
-To manually install a local Remastered mod, launch both games once then head to _My Documents/CnCRemastered/CnCRemastered/Mods_.
-You should see _Tiberian\_Dawn_ and _Red\_Alert_ directories.
-
-#### Tiberian Dawn
-
-Copy the _Vanilla_TD_ directory to the _Tiberian\_Dawn_ directory.
-
-The directory structure should look like this:
-
-    My Documents/CnCRemastered/CnCRemastered/Mods/Tiberian_Dawn/Vanilla_TD/Data/TiberianDawn.dll
-    My Documents/CnCRemastered/CnCRemastered/Mods/Tiberian_Dawn/Vanilla_TD/ccmod.json
-    My Documents/CnCRemastered/CnCRemastered/Mods/Tiberian_Dawn/Vanilla_TD/GameConstants_Mod.xml
-
-You should now see the new mod in the mods list of Tiberian Dawn Remastered.
-
-#### Red Alert
-
-Copy the _Vanilla_RA_ directory to the _Red\_Alert_ directory.
-
-The directory structure should look like this:
-
-    My Documents/CnCRemastered/CnCRemastered/Mods/Red_Alert/Vanilla_RA/Data/RedAlert.dll
-    My Documents/CnCRemastered/CnCRemastered/Mods/Red_Alert/Vanilla_RA/ccmod.json
-
-You should now see the new mod in the mods list of Red Alert Remastered.
+The engine is GPLv3 with EA's additional terms; see [License.txt](License.txt). SDL2 and OpenAL Soft notices are included in the APK. The original upstream README is preserved in [docs/Vanilla-Conquer.md](docs/Vanilla-Conquer.md).

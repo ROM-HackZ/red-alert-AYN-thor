@@ -459,6 +459,10 @@ int Do_Menu(char const** strings, bool)
  *=========================================================================*/
 int Main_Menu(unsigned int)
 {
+#ifdef THOR_ANDROID
+    extern void Thor_Main_Menu(bool);
+    Thor_Main_Menu(true);
+#endif
     /*
     **	Dialog & button dimensions
     */
@@ -770,6 +774,14 @@ int Main_Menu(unsigned int)
         **	Get and process player input.
         */
         input = commands->Input();
+#ifdef THOR_ANDROID
+        extern bool Thor_Ants_Requested();
+        if (Thor_Ants_Requested()) {
+            AntsEnabled = true;
+            retval = 2; // SEL_START_NEW_GAME in the original version-3 menu.
+            process = false;
+        }
+#endif
 
         /*
         **	If there is input, then take this opportunity to seed some bits
@@ -958,5 +970,8 @@ int Main_Menu(unsigned int)
 
     Options.Set_Score_Volume(oldvolume, false);
 
+#ifdef THOR_ANDROID
+    Thor_Main_Menu(false);
+#endif
     return (retval);
 }

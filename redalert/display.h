@@ -205,6 +205,12 @@ public:
     COORDINATE Closest_Free_Spot(COORDINATE coord, bool any = false) const;
     void Sell_Mode_Control(int control);
     void Repair_Mode_Control(int control);
+#ifdef THOR_ANDROID
+    bool Thor_Targeting() const { return PendingObjectPtr || IsTargettingMode != SPC_NONE || IsRepairMode || IsSellMode; }
+    bool Thor_Dragging() const { return IsRubberBand; }
+    bool Thor_Tentative() const { return IsTentative; }
+    void Thor_Cancel() { Mouse_Right_Press(); }
+#endif
 
     virtual void Flag_Cell(CELL cell);
     bool Is_Cell_Flagged(CELL cell) const

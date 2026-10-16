@@ -1,0 +1,5 @@
+{
+  "engine": {"repository": "sandstranger/Vanilla-Conquer", "revision": "00733633a026aac4a02e5ccf29a4f14db80441a1"},
+  "sdl": {"version": "2.32.10", "url": "https://github.com/libsdl-org/SDL/releases/download/release-2.32.10/SDL2-2.32.10.tar.gz", "sha256": "5f5993c530f084535c65a6879e9b26ad441169b3e25d789d83287040a9ca5165"},
+  "openal": {"version": "1.23.1", "url": "https://github.com/kcat/openal-soft/archive/refs/tags/1.23.1.tar.gz", "sha256": "dfddf3a1f61059853c625b7bb03de8433b455f2f79f89548cbcbd5edca3d4a4a"}
+}

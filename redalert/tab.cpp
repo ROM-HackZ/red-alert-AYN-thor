@@ -85,6 +85,10 @@ TabClass::TabClass(void)
 void TabClass::Draw_It(bool complete)
 {
     SidebarClass::Draw_It(complete);
+#ifdef THOR_ANDROID
+    IsToRedraw = false;
+    return;
+#endif
 
     if (Debug_Map) {
         return;
@@ -209,6 +213,7 @@ void TabClass::Hilite_Tab(int tab)
  *=============================================================================================*/
 void TabClass::AI(KeyNumType& input, int x, int y)
 {
+#ifndef THOR_ANDROID
     if (y >= 0 && y < (TAB_HEIGHT * RESFACTOR) && x < (SeenBuff.Get_Width() - 1) && x > 0) {
 
         bool ok = false;
@@ -242,6 +247,7 @@ void TabClass::AI(KeyNumType& input, int x, int y)
         }
     }
 
+#endif
     if (MoneyFlashTimer == 1) {
         IsToRedraw = true;
         Flag_To_Redraw(false);

@@ -2971,6 +2971,11 @@ ActionType BuildingClass::What_Action(CELL cell) const
     if (action == ACTION_MOVE && (*this != STRUCT_CONST || !Is_MCV_Deploy())) {
         action = ACTION_NONE;
     }
+#ifdef THOR_ANDROID
+    // Moving a yard would sell and repack it. Require the explicit deck command.
+    extern bool Thor_ExplicitAction;
+    if (action == ACTION_MOVE && !Thor_ExplicitAction) action = ACTION_NONE;
+#endif
 
     /*
     **	Don't allow targeting of SAM sites, even if the CTRL key

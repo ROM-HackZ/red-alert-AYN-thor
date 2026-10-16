@@ -58,6 +58,9 @@ public:
                     int h = -1,
                     int blackborder = false);
     virtual int Draw_Me(int forced = false);
+#ifdef THOR_ANDROID
+    const char* Thor_Label() const override { return String; }
+#endif
     virtual void Set_Text(char const* text, bool resize = false);
     virtual void Set_Text(int text, bool resize = false);
     virtual void Set_Style(TextPrintType style)

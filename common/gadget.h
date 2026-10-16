@@ -182,6 +182,10 @@ public:
     int Y;
     int Width;
     int Height;
+#ifdef THOR_ANDROID
+    bool Thor_Enabled() const { return !IsDisabled; }
+    virtual const char* Thor_Label() const { return ""; }
+#endif
 
 protected:
     /*

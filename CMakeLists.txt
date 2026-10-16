@@ -185,5 +185,13 @@ add_subdirectory(tiberiandawn)
 add_subdirectory(redalert)
 add_subdirectory(tools)
 
+if(ANDROID AND THOR_ANDROID)
+    target_sources(VanillaRA PRIVATE android/native/thor_bridge.cpp)
+    target_compile_definitions(VanillaRA PUBLIC THOR_ANDROID)
+    target_compile_definitions(commonv PUBLIC THOR_ANDROID)
+    target_compile_definitions(commonv PRIVATE AL_ALEXT_PROTOTYPES)
+    target_compile_definitions(common PUBLIC THOR_ANDROID)
+endif()
+
 feature_summary(WHAT ENABLED_FEATURES DESCRIPTION "Enabled features:")
 feature_summary(WHAT DISABLED_FEATURES DESCRIPTION "Disabled features:")

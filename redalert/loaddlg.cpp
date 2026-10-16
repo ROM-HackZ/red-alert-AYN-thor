@@ -453,6 +453,12 @@ int LoadOptionsClass::Process(void)
         case (BUTTON_EDIT | KN_BUTTON):
 
         case (BUTTON_SAVE | KN_BUTTON):
+#ifdef THOR_ANDROID
+            if (!game_descr[0]) {
+                if (Scen.Description[0]) snprintf(game_descr, sizeof(game_descr), "%s", Scen.Description);
+                else snprintf(game_descr, sizeof(game_descr), "Mission %d", Scen.Scenario);
+            }
+#endif
             if (!strlen(game_descr)) {
                 WWMessageBox().Process(TXT_MUSTENTER_DESCRIPTION);
                 firsttime = true;

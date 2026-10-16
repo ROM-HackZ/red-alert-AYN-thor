@@ -3319,10 +3319,12 @@ bool HouseClass::Manual_Place(BuildingClass* builder, BuildingClass* object)
 
     if (this == PlayerPtr && !Map.PendingObject && builder && object) {
         /*
-        **	Ensures that object selection doesn't remain when
-        **	building placement takes place.
+        **	The Thor deck keeps selection while aiming a placement or power.
+        **	Cancelling should return to those units without selecting them again.
         */
+#ifndef THOR_ANDROID
         Unselect_All();
+#endif
 
         Map.Repair_Mode_Control(0);
         Map.Sell_Mode_Control(0);

@@ -467,6 +467,10 @@ void GadgetClass::Draw_All(bool forced)
  *=========================================================================*/
 KeyNumType GadgetClass::Input(void)
 {
+#ifdef THOR_ANDROID
+    extern void Thor_Gadgets(GadgetClass*);
+    Thor_Gadgets(this);
+#endif
     int mousex, mousey;
     KeyNumType key;
     unsigned flags;
