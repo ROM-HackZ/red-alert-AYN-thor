@@ -72,6 +72,21 @@ public final class ThorInputProbe {
                 send(MotionEvent.ACTION_MOVE,new MotionEvent.PointerCoords[]{point(0,0)},InputDevice.SOURCE_JOYSTICK);
                 inject.invoke(manager,new KeyEvent(down,SystemClock.uptimeMillis(),KeyEvent.ACTION_UP,code,0,0,0,0,0,InputDevice.SOURCE_GAMEPAD),2);
             }
+        } else if (args[0].equals("repeat-key")) {
+            // Android repeats a held physical key after its long-press timeout.
+            // Explicitly model those events; shell-injected DOWN/UP alone do not.
+            int code=Integer.parseInt(args[1]), duration=Integer.parseInt(args[2]);
+            inject.invoke(manager,new KeyEvent(down,down,KeyEvent.ACTION_DOWN,code,0,0,0,0,0,InputDevice.SOURCE_GAMEPAD),2);
+            System.out.println("DOWN"); System.out.flush();
+            try {
+                int repeat=1;
+                for (int elapsed=500;elapsed<duration;elapsed+=80) {
+                    SystemClock.sleep(repeat==1?500:80);
+                    inject.invoke(manager,new KeyEvent(down,SystemClock.uptimeMillis(),KeyEvent.ACTION_DOWN,code,repeat++,0,0,0,0,InputDevice.SOURCE_GAMEPAD),2);
+                }
+            } finally {
+                inject.invoke(manager,new KeyEvent(down,SystemClock.uptimeMillis(),KeyEvent.ACTION_UP,code,0,0,0,0,0,InputDevice.SOURCE_GAMEPAD),2);
+            }
         } else if (args[0].equals("keys")) {
             int code=Integer.parseInt(args[1]);
             inject.invoke(manager,new KeyEvent(down,down,KeyEvent.ACTION_DOWN,code,0,0,0,0,0,InputDevice.SOURCE_GAMEPAD),2);

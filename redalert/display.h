@@ -209,6 +209,9 @@ public:
     bool Thor_Targeting() const { return PendingObjectPtr || IsTargettingMode != SPC_NONE || IsRepairMode || IsSellMode; }
     bool Thor_Dragging() const { return IsRubberBand; }
     bool Thor_Tentative() const { return IsTentative; }
+    void Thor_Selection_Box(int& x1, int& y1, int& x2, int& y2) const {
+        x1 = BandX; y1 = BandY; x2 = NewX; y2 = NewY;
+    }
     void Thor_Cancel() { Mouse_Right_Press(); }
 #endif
 

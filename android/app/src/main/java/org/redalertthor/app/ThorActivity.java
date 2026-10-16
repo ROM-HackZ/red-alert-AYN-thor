@@ -40,6 +40,7 @@ public final class ThorActivity extends SDLActivity {
     private float touchX, touchY, pinch;
     private long touchStarted;
     private float touchTravel;
+    private int ignoredARepeats;
     private static final int EXPORT_SAVES = 701;
     private final Runnable tick = new Runnable() {
         @Override public void run() {
@@ -168,6 +169,7 @@ public final class ThorActivity extends SDLActivity {
         result.put("leftTrigger",lt); result.put("rightTrigger",rt);
         result.put("zoomModifier",r3);
         result.put("selecting",selecting);
+        result.put("ignoredARepeats",ignoredARepeats);
         result.put("wheelGroups",wheel.open() && wheel.groups());
         result.put("wheelChoice",wheel.choice());
         result.put("wheel",wheel.open()?"open":"closed");
@@ -191,6 +193,9 @@ public final class ThorActivity extends SDLActivity {
         if(KeyEvent.isGamepadButton(code) || code>=KeyEvent.KEYCODE_DPAD_UP && code<=KeyEvent.KEYCODE_DPAD_RIGHT) controllerActive=true;
         switch (code) {
         case KeyEvent.KEYCODE_BUTTON_A:
+            // A physical hold repeats on Android. Only its first DOWN starts a
+            // native mouse press; another press would restart the selection box.
+            if (down && e.getRepeatCount()!=0) { ++ignoredARepeats; return true; }
             if (!down && deckPress) { deckPress = false; return true; }
             if (wheel.open()) { if (down && e.getRepeatCount() == 0) { deckPress=true; wheel.confirm(); } return true; }
             if (deck != null && deck.radarMode()) { if (down && e.getRepeatCount()==0) { deckPress=true; deck.useRadar(); } return true; }

@@ -265,7 +265,11 @@ RulesClass::RulesClass(void)
     , MovieTime(1, 4)
     , TiberiumShortScan(0x0600)
     , TiberiumLongScan(0x2000)
+#ifdef THOR_ANDROID
+    , HealthBarDisplayMode(HB_DAMAGED)
+#else
     , HealthBarDisplayMode(HB_SELECTED)
+#endif
     , ResourceBarDisplayMode(RB_SELECTED)
 {
 #ifdef FIXIT_CSII //	checked - ajw 9/28/98

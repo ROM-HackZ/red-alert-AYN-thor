@@ -72,6 +72,10 @@ void Publish() {
     }
     out << ']';
     if (active) {
+        int x1, y1, x2, y2; Map.Thor_Selection_Box(x1, y1, x2, y2);
+        out << ",\"dragStartX\":" << x1 << ",\"dragStartY\":" << y1
+            << ",\"dragEndX\":" << x2 << ",\"dragEndY\":" << y2
+            << ",\"healthBarMode\":" << int(Rule.HealthBarDisplayMode);
         if (iconScenario != Scen.ScenarioName) {
             iconScenario = Scen.ScenarioName; preparedIcons.clear();
             std::lock_guard<std::mutex> guard(bridgeMutex); iconPixels.clear();

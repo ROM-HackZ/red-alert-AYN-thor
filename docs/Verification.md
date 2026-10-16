@@ -44,6 +44,24 @@ manifest has no QA receiver and Android reports it as non-debuggable. Installer
 checks passed on Windows, macOS and Linux in GitHub Actions; the Android build
 job passed too. These host checks do not verify the desktop UI on macOS/Linux.
 
+## Physical A holds and health bars
+
+A physical A hold repeats on Android. The first tests injected a single DOWN/UP
+pair, so they missed a bug: repeated DOWN events restarted the selection box,
+left old outlines behind and made the current box disappear. The Thor recording
+and an explicit repeat probe reproduced those symptoms on `0.1.0-dev.3`.
+
+`0.1.0-dev.4` ignores repeated A-down events. The real-device regression held A
+through 44 repeats while moving, stopping and shrinking the box. Its starting
+corner stayed fixed. Screenshot comparison found zero stale white outline pixels
+in the test area after release. A reverse drag at 2x zoom also remained active
+until release. This check uses a clear upper-left test area in Allied mission 1.
+
+Health bars now use the engine's damaged-plus-selected mode on Android. A combat
+check showed bars on damaged friendly units and visible enemy units/buildings
+with the player's selection cleared. Undamaged, unselected units retain the
+original uncluttered display.
+
 ## Repeat the controller checks
 
 The exported QA receiver exists only in debug builds. Each state request must get
@@ -63,6 +81,8 @@ untouched. Friendly units must be visible. Then run:
 ```sh
 python scripts/qa/verify-controls.py --adb /path/to/adb --serial DEVICE_SERIAL
 python scripts/qa/verify-precision.py --adb /path/to/adb --serial DEVICE_SERIAL
+python -m pip install Pillow
+python scripts/qa/verify-drag-repeat.py --adb /path/to/adb --serial DEVICE_SERIAL
 ```
 
 These change groups 1 and 9, selection, camera position and zoom, then pause the game.

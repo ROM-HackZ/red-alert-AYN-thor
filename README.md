@@ -4,7 +4,7 @@ I wanted the original Red Alert on my Thor, campaigns and all. This runs it with
 
 This uses the original game engine through Vanilla Conquer's Android branch. Bring your own game files. The APK and installer contain no retail game data.
 
-**Development preview 0.1.0-dev.3.** Tested on a Thor: both original campaign starts, Counterstrike, Aftermath, Ant missions, campaign save/load, building placement, infantry production, groups and returning from Home. Every campaign mission has not been played through. See [verification and remaining limits](docs/Verification.md).
+**Development preview 0.1.0-dev.4.** Tested on a Thor: both original campaign starts, Counterstrike, Aftermath, Ant missions, campaign save/load, building placement, infantry production, groups and returning from Home. Every campaign mission has not been played through. See [verification and remaining limits](docs/Verification.md).
 
 This build is for campaigns and offline skirmish. Multiplayer is not included.
 
@@ -14,7 +14,7 @@ This build is for campaigns and offline skirmish. Multiplayer is not included.
 
 ## Downloads
 
-[Download the development preview](https://github.com/ROM-HackZ/red-alert-AYN-thor/releases/tag/v0.1.0-dev.3).
+[Download the development preview](https://github.com/ROM-HackZ/red-alert-AYN-thor/releases/tag/v0.1.0-dev.4).
 
 | File | What it is |
 |---|---|
@@ -73,6 +73,8 @@ python3 scripts/install-thor.py --game "/path/to/Command & Conquer Red Alert" --
 | Start | Open the game menu. |
 
 L3 and R3 mean clicking the left and right sticks. You do not need to hold a stick button to use the cursor. Camera panning and controller zoom pause while A is held so your selection box stays anchored.
+
+Health bars appear on selected units and damaged units, including visible enemies. They follow the original visibility rules.
 
 Original Red Alert had no camera zoom. This build adds it; it does not rotate the camera.
 
