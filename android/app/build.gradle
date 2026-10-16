@@ -3,7 +3,7 @@ android {
     namespace 'org.redalertthor.app'
     compileSdk 36
     ndkVersion '27.2.12479018'
-    defaultConfig { applicationId 'org.redalertthor.app'; minSdk 24; targetSdk 32; versionCode 3; versionName '0.1.0-dev.3'; ndk { abiFilters 'arm64-v8a' } }
+    defaultConfig { applicationId 'org.redalertthor.app'; minSdk 24; targetSdk 33; versionCode 3; versionName '0.1.0-dev.3'; ndk { abiFilters 'arm64-v8a' } }
     signingConfigs {
         release {
             if (System.getenv('THOR_SIGNING_STORE')) {
