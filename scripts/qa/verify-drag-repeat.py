@@ -62,6 +62,9 @@ def verify(d):
     # Zoom and reverse-direction drags exercise the cropped viewport too.
     d.probe("chord",107,0,0,0,-1,0,0,1000)
     d.wait("2x view for reverse drag",lambda s:s["zoom"]==2)
+    d.command(9,x=470,y=290);time.sleep(.15)
+    zoom_region=(700,280,1450,820)
+    zoom_baseline=white(d.capture("repeat-fixed-zoomed-baseline.png"),zoom_region)
     d.command(9,x=400,y=240);time.sleep(.15)
     held=d.probe("repeat-key",96,3000,background=True)
     try:
@@ -70,6 +73,11 @@ def verify(d):
         d.capture("repeat-fixed-zoomed.png")
     finally:held.communicate()
     d.wait("Zoomed box releases cleanly",lambda s:not s["dragging"] and not s["leftMouse"])
+    d.key(97);d.command(9,x=470,y=290);time.sleep(.2)
+    zoom_released=d.capture("repeat-fixed-zoomed-released.png")
+    remaining=ImageChops.subtract(white(zoom_released,zoom_region),zoom_baseline).histogram()[255]
+    if remaining:raise AssertionError(f"Zoomed drag left {remaining} white outline pixels")
+    d.checks.append({"check":"No stale white outline pixels at 2x zoom","pixels":remaining})
     d.wait("Damaged and selected health-bar mode is active",lambda s:s["healthBarMode"]==0)
     d.key(108)
 

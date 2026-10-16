@@ -54,8 +54,8 @@ and an explicit repeat probe reproduced those symptoms on `0.1.0-dev.3`.
 `0.1.0-dev.4` ignores repeated A-down events. The real-device regression held A
 through 44 repeats while moving, stopping and shrinking the box. Its starting
 corner stayed fixed. Screenshot comparison found zero stale white outline pixels
-in the test area after release. A reverse drag at 2x zoom also remained active
-until release. This check uses a clear upper-left test area in Allied mission 1.
+in the test area after release at both 1x and 2x zoom. A reverse drag at 2x
+zoom also remained active until release. This check uses a clear upper-left test area in Allied mission 1.
 
 Health bars now use the engine's damaged-plus-selected mode on Android. A combat
 check showed bars on damaged friendly units and visible enemy units/buildings
